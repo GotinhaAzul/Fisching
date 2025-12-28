@@ -1,28 +1,40 @@
 import estado
 from utils import limpar_console
 
-# Estrutura de receitas simples e expansível:
-# - ingredientes: dict raridade -> quantidade exigida
+# Estrutura de receitas:
+# - ingredientes: dict com chaves opcionais "raridades" e "mutacoes", cada uma mapeando item -> quantidade
 # - multiplicador: valor final = (soma dos valores base dos peixes usados) * multiplicador
-# Para expandir, basta adicionar novos itens em RECEITAS seguindo o mesmo formato.
+# Para expandir, adicione novos itens em RECEITAS seguindo o mesmo formato.
 RECEITAS = [
     {
         "nome": "Grelhado Simples",
-        "ingredientes": {"Comum": 1, "Incomum": 1},
+        "ingredientes": {"raridades": {"Comum": 1, "Incomum": 1}},
         "multiplicador": 1.5,
-        "descricao": "Comum + Incomum, valor final x1.5.",
+        "descricao": "Sabor caseiro que lembra fogueira à beira do lago.",
     },
     {
         "nome": "Ensopado Especial",
-        "ingredientes": {"Incomum": 1, "Raro": 1},
-        "multiplicador": 1.9,
-        "descricao": "Incomum + Raro, quase dobra o valor.",
+        "ingredientes": {"raridades": {"Incomum": 1, "Raro": 1}},
+        "multiplicador": 1.85,
+        "descricao": "Caldo generoso servido em um tacho fumegante.",
+    },
+    {
+        "nome": "Caldeirada Vibrante",
+        "ingredientes": {"raridades": {"Incomum": 1}, "mutacoes": {"Eletrizado": 1}},
+        "multiplicador": 2.1,
+        "descricao": "Prato que pulsa energia, perfeito para aventureiros cansados.",
+    },
+    {
+        "nome": "Filet Celestial",
+        "ingredientes": {"raridades": {"Raro": 1}, "mutacoes": {"Celestial": 1}},
+        "multiplicador": 2.4,
+        "descricao": "Corte iluminado com brilho suave, digno de um festival.",
     },
     {
         "nome": "Prato Assinado",
-        "ingredientes": {"Raro": 1, "Épico": 1},
+        "ingredientes": {"raridades": {"Raro": 1, "Lendário": 1}},
         "multiplicador": 2.5,
-        "descricao": "Raro + Épico, obra-prima valorizada.",
+        "descricao": "Receita exclusiva do chef, preparada apenas em ocasiões marcantes.",
     },
 ]
 
@@ -61,18 +73,33 @@ def cozinhar():
             cozinhar_receita(receita)
 
 
+def normalizar_ingredientes(ingredientes):
+    return {
+        "raridades": ingredientes.get("raridades", {}),
+        "mutacoes": ingredientes.get("mutacoes", {}),
+    }
+
+
 def tem_ingredientes(ingredientes_necessarios):
-    contagem = {}
+    ingredientes_necessarios = normalizar_ingredientes(ingredientes_necessarios)
+    contagem_raridades = {}
+    contagem_mutacoes = {}
     for peixe in estado.inventario:
-        contagem[peixe["raridade"]] = contagem.get(peixe["raridade"], 0) + 1
-    for raridade, qtd in ingredientes_necessarios.items():
-        if contagem.get(raridade, 0) < qtd:
+        contagem_raridades[peixe["raridade"]] = contagem_raridades.get(peixe["raridade"], 0) + 1
+        if peixe.get("mutacao"):
+            contagem_mutacoes[peixe["mutacao"]] = contagem_mutacoes.get(peixe["mutacao"], 0) + 1
+
+    for raridade, qtd in ingredientes_necessarios["raridades"].items():
+        if contagem_raridades.get(raridade, 0) < qtd:
+            return False
+    for mutacao, qtd in ingredientes_necessarios["mutacoes"].items():
+        if contagem_mutacoes.get(mutacao, 0) < qtd:
             return False
     return True
 
 
 def cozinhar_receita(receita):
-    ingredientes_necessarios = receita["ingredientes"]
+    ingredientes_necessarios = normalizar_ingredientes(receita["ingredientes"])
     selecionados = selecionar_peixes_manualmente(ingredientes_necessarios)
     if not selecionados:
         return
@@ -117,12 +144,21 @@ def cozinhar_receita(receita):
 
 def selecionar_peixes_manualmente(ingredientes_necessarios):
     selecionados_idx = set()
-    requisitos = ingredientes_necessarios.copy()
+    requisitos_raridades = ingredientes_necessarios.get("raridades", {}).copy()
+    requisitos_mutacoes = ingredientes_necessarios.get("mutacoes", {}).copy()
 
     def restante_texto():
-        return ", ".join(f"{qtd}x {rar}" for rar, qtd in requisitos.items() if qtd > 0) or "Nenhum"
+        partes = []
+        partes.extend(f"{qtd}x {rar}" for rar, qtd in requisitos_raridades.items() if qtd > 0)
+        partes.extend(f"{qtd}x Mutação {mut}" for mut, qtd in requisitos_mutacoes.items() if qtd > 0)
+        return ", ".join(partes) or "Nenhum"
 
-    while any(qtd > 0 for qtd in requisitos.values()):
+    def requisitos_pendentes():
+        return any(qtd > 0 for qtd in requisitos_raridades.values()) or any(
+            qtd > 0 for qtd in requisitos_mutacoes.values()
+        )
+
+    while requisitos_pendentes():
         limpar_console()
         print("👩‍🍳 Selecione os peixes necessários")
         print(f"Restante: {restante_texto()}\n")
@@ -147,17 +183,24 @@ def selecionar_peixes_manualmente(ingredientes_necessarios):
 
         peixe = estado.inventario[escolha - 1]
         raridade = peixe["raridade"]
-        if requisitos.get(raridade, 0) <= 0:
-            print("Essa raridade não é necessária ou já foi preenchida.")
+        mutacao = peixe.get("mutacao")
+
+        if mutacao and requisitos_mutacoes.get(mutacao, 0) > 0:
+            requisitos_mutacoes[mutacao] -= 1
+            selecionados_idx.add(escolha)
+        elif requisitos_raridades.get(raridade, 0) > 0:
+            requisitos_raridades[raridade] -= 1
+            selecionados_idx.add(escolha)
+        else:
+            print("Esse peixe não atende nenhum requisito pendente.")
             input("Pressione ENTER para continuar.")
             continue
-
-        requisitos[raridade] -= 1
-        selecionados_idx.add(escolha)
 
     return [estado.inventario[i - 1] for i in sorted(selecionados_idx)]
 
 
 def ingredientes_para_texto(ingredientes):
-    partes = [f"{qtd}x {raridade}" for raridade, qtd in ingredientes.items()]
+    ingredientes = normalizar_ingredientes(ingredientes)
+    partes = [f"{qtd}x {raridade}" for raridade, qtd in ingredientes["raridades"].items()]
+    partes.extend(f"{qtd}x Mutação {mut}" for mut, qtd in ingredientes["mutacoes"].items())
     return ", ".join(partes)
