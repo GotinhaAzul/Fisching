@@ -78,6 +78,15 @@ def _pescar_em_cacada(cacada):
     vara = VARAS[estado.vara_atual]
     tentativas_restantes = cacada.get("tentativas", 5)
     while tentativas_restantes > 0:
+        if vara["peso_max"] < cacada["peso_min"]:
+            print(
+                f"\n❌ Sua vara atual suporta até {vara['peso_max']}kg, "
+                f"mas o alvo APEX pesa no mínimo {cacada['peso_min']}kg."
+            )
+            print("Equipe uma vara mais forte para iniciar esta caçada.")
+            input("\nPressione ENTER para voltar")
+            break
+
         limpar_console()
         print(f"🎯 Caçada: {cacada['nome']}")
         print(cacada["descricao"])
