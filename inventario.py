@@ -25,7 +25,7 @@ def mostrar_inventario():
             if pode_trocar:
                 trocar_vara()
             else:
-                print("Você ainda não possui outra vara.")
+                print("❌ Você ainda não possui outra vara.")
                 input("Pressione ENTER para continuar.")
         elif escolha == "0":
             break
@@ -76,6 +76,7 @@ def vender_tudo():
     estado.dinheiro += total
     print(f"💰 Você vendeu tudo por ${total:.2f}")
     input("Pressione ENTER para continuar.")
+
 
 def mercado_varas():
     while True:
