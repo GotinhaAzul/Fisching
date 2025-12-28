@@ -96,8 +96,12 @@ def cozinhar():
                 print("\nVocê não tem peixes para cozinhar.")
                 input("Pressione ENTER para continuar.")
                 continue
-            if not tem_ingredientes(receita["ingredientes"]):
+            tem, faltantes = avaliar_ingredientes(receita["ingredientes"])
+            if not tem:
                 print("\nIngredientes insuficientes para esta receita.")
+                faltantes_txt = faltantes_para_texto(faltantes)
+                if faltantes_txt:
+                    print(f"Faltam: {faltantes_txt}.")
                 input("Pressione ENTER para continuar.")
                 continue
             cozinhar_receita(receita)
@@ -110,22 +114,34 @@ def normalizar_ingredientes(ingredientes):
     }
 
 
-def tem_ingredientes(ingredientes_necessarios):
+def avaliar_ingredientes(ingredientes_necessarios):
+    """Verifica se há peixes suficientes sem reutilizar o mesmo item para dois requisitos."""
     ingredientes_necessarios = normalizar_ingredientes(ingredientes_necessarios)
-    contagem_raridades = {}
-    contagem_mutacoes = {}
-    for peixe in estado.inventario:
-        contagem_raridades[peixe["raridade"]] = contagem_raridades.get(peixe["raridade"], 0) + 1
-        if peixe.get("mutacao"):
-            contagem_mutacoes[peixe["mutacao"]] = contagem_mutacoes.get(peixe["mutacao"], 0) + 1
+    faltantes_raridades = ingredientes_necessarios["raridades"].copy()
+    faltantes_mutacoes = ingredientes_necessarios["mutacoes"].copy()
 
-    for raridade, qtd in ingredientes_necessarios["raridades"].items():
-        if contagem_raridades.get(raridade, 0) < qtd:
-            return False
-    for mutacao, qtd in ingredientes_necessarios["mutacoes"].items():
-        if contagem_mutacoes.get(mutacao, 0) < qtd:
-            return False
-    return True
+    for peixe in estado.inventario:
+        mutacao = peixe.get("mutacao")
+        if mutacao and faltantes_mutacoes.get(mutacao, 0) > 0:
+            faltantes_mutacoes[mutacao] -= 1
+            continue
+
+        raridade = peixe["raridade"]
+        if faltantes_raridades.get(raridade, 0) > 0:
+            faltantes_raridades[raridade] -= 1
+
+    faltantes = {
+        "raridades": {r: qtd for r, qtd in faltantes_raridades.items() if qtd > 0},
+        "mutacoes": {m: qtd for m, qtd in faltantes_mutacoes.items() if qtd > 0},
+    }
+
+    tem_tudo = not faltantes["raridades"] and not faltantes["mutacoes"]
+    return tem_tudo, faltantes
+
+
+def tem_ingredientes(ingredientes_necessarios):
+    tem, _ = avaliar_ingredientes(ingredientes_necessarios)
+    return tem
 
 
 def cozinhar_receita(receita):
@@ -233,4 +249,10 @@ def ingredientes_para_texto(ingredientes):
     ingredientes = normalizar_ingredientes(ingredientes)
     partes = [f"{qtd}x {raridade}" for raridade, qtd in ingredientes["raridades"].items()]
     partes.extend(f"{qtd}x Mutação {mut}" for mut, qtd in ingredientes["mutacoes"].items())
+    return ", ".join(partes)
+
+
+def faltantes_para_texto(faltantes):
+    partes = [f"{qtd}x {raridade}" for raridade, qtd in faltantes.get("raridades", {}).items()]
+    partes.extend(f"{qtd}x Mutação {mut}" for mut, qtd in faltantes.get("mutacoes", {}).items())
     return ", ".join(partes)
