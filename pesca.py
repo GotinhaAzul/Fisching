@@ -9,10 +9,31 @@ from eventos import sortear_evento, ajustar_pesos_raridade, EVENTO_PADRAO
 from dados import MUTACOES
 
 TECLAS = ["w", "a", "s", "d"]
+RARIDADE_VALOR_MULT = {
+    "Comum": 1,
+    "Incomum": 1,
+    "Raro": 2,
+    "Lendário": 5,
+    "Apex": 10,
+}
+RARIDADE_XP_MULT = {
+    "Comum": 1,
+    "Incomum": 1,
+    "Raro": 2,
+    "Lendário": 5,
+    "Apex": 10,
+}
 
 def minigame_reacao(vara, raridade):
-    tempo = 1.2 + vara["bonus_reacao"]
-    combo = random.choices(TECLAS, k=3 if raridade == "Lendário" else 1)
+    if raridade == "Apex":
+        tempo = 1.0 + vara["bonus_reacao"]
+        combo = random.choices(TECLAS, k=5)
+    elif raridade == "Lendário":
+        tempo = 1.2 + vara["bonus_reacao"]
+        combo = random.choices(TECLAS, k=3)
+    else:
+        tempo = 1.2 + vara["bonus_reacao"]
+        combo = random.choices(TECLAS, k=1)
 
     print("\n🐟 O peixe mordeu!")
     print("⚡ Digite:")
@@ -87,12 +108,22 @@ def pescar():
             mutacao = random.choice(list(MUTACOES.keys()))
             mult_mut = MUTACOES[mutacao]
 
-        kg = random.uniform(1, 5 if raridade != "Lendário" else 15) * evento.get("bonus_peso", 1.0)
+        if raridade == "Apex":
+            peso_base = random.uniform(70, 110)
+        elif raridade == "Lendário":
+            peso_base = random.uniform(1, 15)
+        else:
+            peso_base = random.uniform(1, 5)
+        kg = peso_base * evento.get("bonus_peso", 1.0)
 
         sucesso = minigame_reacao(vara, raridade)
         if sucesso:
             kg *= 1.15
         else:
+            if raridade == "Apex":
+                print("\n💥 Você errou o combo APEX e o peixe escapou!")
+                input("\nPressione ENTER para continuar")
+                continue
             if mutacao:
                 mutacao = None
                 mult_mut = 1.0
@@ -102,9 +133,7 @@ def pescar():
         if kg > vara["peso_max"]:
             kg = vara["peso_max"]
 
-        valor = (kg * 0.1) * pool["valor_base"] * mult_mut * evento.get("bonus_valor", 1.0) * (
-            5 if raridade == "Lendário" else 2 if raridade == "Raro" else 1
-        )
+        valor = (kg * 0.1) * pool["valor_base"] * mult_mut * evento.get("bonus_valor", 1.0) * RARIDADE_VALOR_MULT.get(raridade, 1)
 
         estado.inventario.append({
             "nome": peixe,
@@ -118,7 +147,7 @@ def pescar():
         estado.peixes_descobertos.add(peixe)
 
         # Concede XP
-        xp_base = kg * (5 if raridade == "Lendário" else 2 if raridade == "Raro" else 1)
+        xp_base = kg * RARIDADE_XP_MULT.get(raridade, 1)
         xp_ganho = int(xp_base * evento.get("xp_multiplicador", 1.0))
         xp_ganho = max(1, xp_ganho)
         estado.xp += xp_ganho
@@ -133,6 +162,10 @@ def pescar():
         mut_txt = f" ({mutacao})" if mutacao else ""
         print(f"\n🎣 Você pescou: {peixe}{mut_txt} [{raridade}] - {kg:.2f}kg")
         print(f"💰 Valor: ${valor:.2f}")
+
+        if raridade == "Lendário" and not estado.desbloqueou_cacadas:
+            estado.desbloqueou_cacadas = True
+            print("\n🗝️  Você desbloqueou as Caçadas APEX no menu!")
 
         print("\n[P] Pescar novamente na mesma pool")
         print("[M] Mudar de local")
