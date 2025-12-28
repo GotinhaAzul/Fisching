@@ -20,5 +20,18 @@ FALAS_PESCA = [
     "O peixe parece querer fugir!"
 ]
 
+FALAS_MENU = [
+    "O cheiro de maresia invade o ar.",
+    "Uma gaivota passa gritando por cima.",
+    "A brisa fria sopra das montanhas.",
+    "Você escuta histórias de um peixe colossal nas profundezas.",
+    "Um pescador ao lado limpa seu equipamento com calma.",
+    "O som das ondas acalma sua mente.",
+    "Rumores dizem que peixes mutantes surgiram recentemente.",
+    "Um gato aparece por perto, de olho no seu balde vazio.",
+    "O céu está limpo, perfeito para um dia de pesca.",
+    "Algumas pessoas apostam em quem pega o raro primeiro."
+]
+
 def aleatoria(lista):
     return random.choice(lista)

@@ -5,6 +5,7 @@ from pools import POOLS
 from varas import VARAS
 from utils import limpar_console
 from falas import aleatoria, FALAS_PESCA, FALAS_POOLS
+from eventos import sortear_evento, ajustar_pesos_raridade, EVENTO_PADRAO
 
 MUTACOES = {
     "Congelado": 1.2,
@@ -68,25 +69,31 @@ def pescar():
     if pool is None:
         return
 
+    evento = sortear_evento()
+    ultima_troca_pool = time.time()
+
     while True:
         limpar_console()
+        exibir_contexto(pool, evento)
         print(aleatoria(FALAS_PESCA) + "\n")
         vara = VARAS[estado.vara_atual]
 
+        raridades_ajustadas = ajustar_pesos_raridade(pool["raridades"], evento.get("bonus_raridade"))
         raridade = random.choices(
-            list(pool["peixes"].keys()),
-            weights=[r[1] for r in pool["raridades"]]
+            [r[0] for r in raridades_ajustadas],
+            weights=[r[1] for r in raridades_ajustadas]
         )[0]
 
         peixe = random.choice(pool["peixes"][raridade])
 
         mutacao = None
         mult_mut = 1.0
-        if random.random() < 0.15 + vara["bonus_mutacao"]:
+        mutacao_chance = 0.15 + vara["bonus_mutacao"] + evento.get("bonus_mutacao", 0)
+        if random.random() < mutacao_chance:
             mutacao = random.choice(list(MUTACOES.keys()))
             mult_mut = MUTACOES[mutacao]
 
-        kg = random.uniform(1, 5 if raridade != "Lendário" else 15)
+        kg = random.uniform(1, 5 if raridade != "Lendário" else 15) * evento.get("bonus_peso", 1.0)
 
         sucesso = minigame_reacao(vara, raridade)
         if sucesso:
@@ -101,7 +108,7 @@ def pescar():
         if kg > vara["peso_max"]:
             kg = vara["peso_max"]
 
-        valor = (kg * 0.1) * pool["valor_base"] * mult_mut * (
+        valor = (kg * 0.1) * pool["valor_base"] * mult_mut * evento.get("bonus_valor", 1.0) * (
             5 if raridade == "Lendário" else 2 if raridade == "Raro" else 1
         )
 
@@ -117,7 +124,9 @@ def pescar():
         estado.peixes_descobertos.add(peixe)
 
         # Concede XP
-        xp_ganho = int(kg * (5 if raridade == "Lendário" else 2 if raridade == "Raro" else 1))
+        xp_base = kg * (5 if raridade == "Lendário" else 2 if raridade == "Raro" else 1)
+        xp_ganho = int(xp_base * evento.get("xp_multiplicador", 1.0))
+        xp_ganho = max(1, xp_ganho)
         estado.xp += xp_ganho
         print(f"⭐ Você ganhou {xp_ganho} XP!")
 
@@ -141,5 +150,18 @@ def pescar():
             pool = escolher_pool()
             if pool is None:
                 break
+            agora = time.time()
+            if agora - ultima_troca_pool < 10:
+                evento = EVENTO_PADRAO
+            else:
+                evento = sortear_evento()
+            ultima_troca_pool = agora
         else:
             break
+
+
+def exibir_contexto(pool, evento):
+    print(f"🌊 Local: {pool.get('nome', 'Desconhecido')}")
+    print(f"🎯 Vara: {estado.vara_atual}")
+    print(f"⚙️  Evento: {evento['nome']}")
+    print(f"   {evento['descricao']}\n")
