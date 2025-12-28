@@ -1,10 +1,10 @@
 NOME_POOL = "Píer Abandonado"
 
 RARIDADES = [
-    ("Comum", 0.58),
+    ("Comum", 0.60),
     ("Incomum", 0.25),
-    ("Raro", 0.12),
-    ("Lendário", 0.05),
+    ("Raro", 0.14),
+    ("Lendário", 0.01),
 ]
 
 PEIXES = {
@@ -14,5 +14,5 @@ PEIXES = {
     "Lendário": ["Gaivota Encrenqueira", "Enguia Fantasma"],
 }
 
-VALOR_MULT = 1.05
+VALOR_MULT = 1.08
 NIVEL_MIN = 2

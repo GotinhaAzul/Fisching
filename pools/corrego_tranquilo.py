@@ -1,10 +1,10 @@
 NOME_POOL = "Córrego Tranquilo"
 
 RARIDADES = [
-    ("Comum", 0.65),
+    ("Comum", 0.67),
     ("Incomum", 0.22),
     ("Raro", 0.10),
-    ("Lendário", 0.03),
+    ("Lendário", 0.01),
 ]
 
 PEIXES = {
