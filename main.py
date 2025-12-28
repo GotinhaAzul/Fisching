@@ -1,6 +1,7 @@
 import estado
 from pesca import pescar
 from inventario import mostrar_inventario, vender_peixe_individual, vender_tudo, mercado_varas
+from cozinha import cozinhar
 from utils import limpar_console
 from bestiario import BESTIARIO
 
@@ -15,7 +16,8 @@ def menu():
         print("1. Pescar")
         print("2. Inventário")
         print("3. Mercado")
-        print("4. Bestiário")
+        print("4. Cozinha")
+        print("5. Bestiário")
         print("0. Sair")
 
         op = input("> ")
@@ -27,6 +29,8 @@ def menu():
         elif op == "3":
             mercado()
         elif op == "4":
+            cozinhar()
+        elif op == "5":
             mostrar_bestiario()
         elif op == "0":
             break
