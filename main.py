@@ -75,7 +75,12 @@ def mostrar_bestiario():
     print("📖 Bestiário\n")
     for nome, info in BESTIARIO.items():
         if nome in estado.peixes_descobertos:
-            print(f"- {nome} [{info['raridade']}] (Pool: {info['pool']})")
+            peso_min = info.get("peso_min")
+            peso_max = info.get("peso_max")
+            faixa_peso = ""
+            if peso_min is not None and peso_max is not None:
+                faixa_peso = f" - Peso: {peso_min}-{peso_max}kg"
+            print(f"- {nome} [{info['raridade']}] (Pool: {info['pool']}){faixa_peso}")
         else:
             print("- ???")  # peixe ainda não descoberto
     input("\nPressione ENTER para voltar")

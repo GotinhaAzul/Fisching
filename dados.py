@@ -28,6 +28,14 @@ CHANCE_MUTACAO = 0.30
 CHANCE_MUTACAO_RARA = 0.15
 CHANCE_MUTACAO_LENDARIA = 0.05
 
+RARIDADE_INTERVALO_PESO = {
+    "Comum": (1, 5),
+    "Incomum": (1, 5),
+    "Raro": (1, 5),
+    "Lendário": (1, 15),
+    "Apex": (70, 110),
+}
+
 VALOR_BASE = {
     "Comum": 10,
     "Incomum": 25,

@@ -6,7 +6,7 @@ from varas import VARAS
 from utils import limpar_console
 from falas import aleatoria, FALAS_PESCA, FALAS_POOLS
 from eventos import sortear_evento, ajustar_pesos_raridade, EVENTO_PADRAO
-from dados import MUTACOES
+from dados import MUTACOES, RARIDADE_INTERVALO_PESO
 
 TECLAS = ["w", "a", "s", "d"]
 RARIDADE_VALOR_MULT = {
@@ -23,7 +23,6 @@ RARIDADE_XP_MULT = {
     "Lendário": 5,
     "Apex": 10,
 }
-
 def minigame_reacao(vara, raridade):
     if raridade == "Apex":
         tempo = 1.0 + vara["bonus_reacao"]
@@ -108,12 +107,16 @@ def pescar():
             mutacao = random.choice(list(MUTACOES.keys()))
             mult_mut = MUTACOES[mutacao]
 
-        if raridade == "Apex":
-            peso_base = random.uniform(70, 110)
-        elif raridade == "Lendário":
-            peso_base = random.uniform(1, 15)
-        else:
-            peso_base = random.uniform(1, 5)
+        peso_min, peso_max = RARIDADE_INTERVALO_PESO.get(raridade, (1, 5))
+        if vara["peso_max"] < peso_min:
+            print(
+                f"\n❌ Sua vara suporta até {vara['peso_max']}kg, mas este peixe pesa no mínimo {peso_min}kg."
+                "\nTroque para uma vara mais forte para fisgá-lo."
+            )
+            input("\nPressione ENTER para continuar")
+            continue
+
+        peso_base = random.uniform(peso_min, peso_max)
         kg = peso_base * evento.get("bonus_peso", 1.0)
 
         sucesso = minigame_reacao(vara, raridade)
