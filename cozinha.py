@@ -36,6 +36,36 @@ RECEITAS = [
         "multiplicador": 2.5,
         "descricao": "Receita exclusiva do chef, preparada apenas em ocasiões marcantes.",
     },
+    {
+        "nome": "Risoto da Maré",
+        "ingredientes": {"raridades": {"Comum": 1, "Incomum": 1, "Raro": 1}},
+        "multiplicador": 1.95,
+        "descricao": "Grãos cremosos que destacam a variedade de peixes frescos.",
+    },
+    {
+        "nome": "Taco Tóxico",
+        "ingredientes": {"raridades": {"Comum": 2}, "mutacoes": {"Tóxico": 1}},
+        "multiplicador": 1.8,
+        "descricao": "Picância controlada que surpreende sem ultrapassar o limite seguro.",
+    },
+    {
+        "nome": "Moqueca Encantada",
+        "ingredientes": {"raridades": {"Incomum": 2, "Raro": 1}, "mutacoes": {"Enfeitiçado": 1}},
+        "multiplicador": 2.2,
+        "descricao": "Caldo perfumado que parece brilhar à luz de velas mágicas.",
+    },
+    {
+        "nome": "Caldo Abissal",
+        "ingredientes": {"raridades": {"Raro": 1}, "mutacoes": {"Abissal": 1}},
+        "multiplicador": 2.45,
+        "descricao": "Sopa profunda com sabor denso, feita de criaturas do fundo do mar.",
+    },
+    {
+        "nome": "Banquete Temporal",
+        "ingredientes": {"raridades": {"Lendário": 1}, "mutacoes": {"Temporal": 1}},
+        "multiplicador": 2.5,
+        "descricao": "Prato raro que parece suspender o tempo para apreciar cada garfada.",
+    },
 ]
 
 
