@@ -14,3 +14,8 @@ lendarios_pescados = 0  # total de peixes lendários já pescados
 
 # Registro de troféus lendários capturados (melhor peso por peixe)
 trofeus = {}
+
+# Sistema de missões
+missoes_ativas = []
+ultimo_refresh_missoes = 0
+missoes_concluidas = 0
