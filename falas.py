@@ -33,5 +33,23 @@ FALAS_MENU = [
     "Algumas pessoas apostam em quem pega o raro primeiro."
 ]
 
+FALAS_VARA_REFORCADA = [
+    "Talvez seja hora de investir em uma vara que aguente mais de {peso_min}kg.",
+    "Sua vara range... procure algo que passe dos {peso_min}kg ou você só vai assistir os gigantes irem embora.",
+    "Peixes desse porte exigem cabos reforçados. Uma vara acima de {peso_min}kg resolveria.",
+    "Trocar para uma vara mais robusta vai evitar perder peixes de {peso_min}kg+.",
+]
+
+FALAS_INCENTIVO_VARIAR = [
+    "Experimentar outro poço pode destravar peixes diferentes e bônus melhores.",
+    "Talvez valha rodar um evento novo ou tentar outro poço para mudar a maré.",
+    "Procure um poço alternativo ou espere um evento: os bônus podem facilitar.",
+    "Outro poço ou evento pode trazer peixes que combinem melhor com sua vara.",
+]
+
 def aleatoria(lista):
     return random.choice(lista)
+
+
+def aleatoria_formatada(lista, **kwargs):
+    return random.choice(lista).format(**kwargs)
