@@ -6,6 +6,7 @@ from utils import limpar_console
 from bestiario import BESTIARIO
 from falas import FALAS_MENU, aleatoria
 
+
 def menu():
     while True:
         limpar_console()
@@ -21,6 +22,8 @@ def menu():
         print("3. Mercado")
         print("4. Cozinha")
         print("5. Bestiário")
+        if estado.desbloqueou_cacadas:
+            print("6. Caçadas APEX")
         print("0. Sair")
 
         op = input("> ")
@@ -35,8 +38,12 @@ def menu():
             cozinhar()
         elif op == "5":
             mostrar_bestiario()
+        elif op == "6" and estado.desbloqueou_cacadas:
+            from cacadas import menu_cacadas
+            menu_cacadas()
         elif op == "0":
             break
+
 
 def mercado():
     from falas import aleatoria, FALAS_MERCADO
@@ -61,6 +68,7 @@ def mercado():
         elif op == "0":
             break
 
+
 def mostrar_bestiario():
     from utils import limpar_console
     limpar_console()
@@ -71,5 +79,6 @@ def mostrar_bestiario():
         else:
             print("- ???")  # peixe ainda não descoberto
     input("\nPressione ENTER para voltar")
+
 
 menu()
