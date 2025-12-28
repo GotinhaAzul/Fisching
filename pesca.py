@@ -101,10 +101,15 @@ def minigame_reacao(vara, raridade):
     print(" → ".join(combo).upper())
 
     inicio = time.time()
-    entrada = input(">>> ").lower().split()
+    entrada_raw = input(">>> ").lower().strip()
     reacao = time.time() - inicio
 
-    return reacao <= tempo and entrada == combo
+    # Permite digitar com ou sem espaços entre as letras (ex.: "wasd" ou "w a s d")
+    entrada_processada = (
+        list(entrada_raw) if " " not in entrada_raw else entrada_raw.split()
+    )
+
+    return reacao <= tempo and entrada_processada == combo
 
 def escolher_pool():
     while True:
