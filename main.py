@@ -5,6 +5,7 @@ from cozinha import cozinhar
 from utils import limpar_console
 from bestiario import BESTIARIO
 from falas import FALAS_MENU, aleatoria
+from missoes import menu_missoes
 
 
 def menu():
@@ -22,8 +23,9 @@ def menu():
         print("3. Mercado")
         print("4. Cozinha")
         print("5. Bestiário")
+        print("6. Missões")
         if estado.desbloqueou_cacadas:
-            print("6. Caçadas APEX")
+            print("7. Caçadas APEX")
         print("0. Sair")
 
         op = input("> ")
@@ -38,7 +40,9 @@ def menu():
             cozinhar()
         elif op == "5":
             mostrar_bestiario()
-        elif op == "6" and estado.desbloqueou_cacadas:
+        elif op == "6":
+            menu_missoes()
+        elif op == "7" and estado.desbloqueou_cacadas:
             from cacadas import menu_cacadas
             menu_cacadas()
         elif op == "0":
