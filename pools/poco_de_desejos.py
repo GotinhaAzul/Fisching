@@ -15,4 +15,4 @@ PEIXES = {
 }
 
 VALOR_MULT = 1.3
-NIVEL_MIN = 7
+NIVEL_MIN = 5
