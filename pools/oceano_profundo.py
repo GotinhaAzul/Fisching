@@ -1,10 +1,10 @@
 NOME_POOL = "Oceano Profundo"
 
 RARIDADES = [
-    ("Comum", 0.50),
-    ("Incomum", 0.30),
+    ("Comum", 0.53),
+    ("Incomum", 0.31),
     ("Raro", 0.15),
-    ("Lendário", 0.05)
+    ("Lendário", 0.01)
 ]
 
 PEIXES = {
@@ -14,5 +14,5 @@ PEIXES = {
     "Lendário": ["Kraken", "Cthulhu Juvenil"]
 }
 
-VALOR_MULT = 1.1
+VALOR_MULT = 1.15
 NIVEL_MIN = 3

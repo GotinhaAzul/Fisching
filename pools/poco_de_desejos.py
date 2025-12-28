@@ -1,10 +1,10 @@
 NOME_POOL = "Poço de desejos"
 
 RARIDADES = [
-    ("Comum", 0.55),
-    ("Incomum", 0.20),
-    ("Raro", 0.15),
-    ("Lendário", 0.10),
+    ("Comum", 0.57),
+    ("Incomum", 0.22),
+    ("Raro", 0.18),
+    ("Lendário", 0.03),
 ]
 
 PEIXES = {
@@ -14,5 +14,5 @@ PEIXES = {
     "Lendário": ["Koi Dourada", "Espírito do Poço"],
 }
 
-VALOR_MULT = 1.2
+VALOR_MULT = 1.3
 NIVEL_MIN = 7

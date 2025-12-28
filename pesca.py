@@ -20,17 +20,23 @@ RARIDADE_VALOR_MULT = {
     "Comum": 1,
     "Incomum": 1,
     "Raro": 2,
-    "Lendário": 5,
-    "Apex": 10,
+    "Lendário": 8,
+    "Apex": 12,
 }
 RARIDADE_XP_MULT = {
     "Comum": 1,
     "Incomum": 1,
     "Raro": 2,
-    "Lendário": 5,
-    "Apex": 10,
+    "Lendário": 8,
+    "Apex": 12,
 }
 MEDIA_MULT_MUTACAO = sum(MUTACOES.values()) / len(MUTACOES)
+
+MENSAGENS_TROFEU_LENDARIO = [
+    "🏆 Troféu lendário! Você ergue {peixe} ({kg:.2f}kg) e sente a energia do local vibrar.",
+    "🌟 Uma lenda nas suas mãos: {peixe} de {kg:.2f}kg! O acampamento inteiro vai comentar.",
+    "✨ Você exibe {peixe} ({kg:.2f}kg) como um troféu brilhante. Até os espíritos do rio prestam atenção.",
+]
 
 def minigame_reacao(vara, raridade):
     if raridade == "Apex":
@@ -86,6 +92,24 @@ def escolher_pool():
         # Só permite selecionar pools desbloqueadas
         if 1 <= escolha <= len(opcoes_disponiveis):
             return opcoes_disponiveis[escolha - 1]
+
+
+def registrar_trofeu(peixe, kg, pool_nome):
+    """
+    Registra o melhor troféu lendário por peixe.
+    Retorna True se for um novo recorde ou primeira captura lendária do peixe.
+    """
+    trofeu_atual = estado.trofeus.get(peixe)
+    novo_recorde = trofeu_atual is None or kg > trofeu_atual["kg"]
+    if novo_recorde:
+        estado.trofeus[peixe] = {
+            "nome": peixe,
+            "kg": kg,
+            "pool": pool_nome,
+            "raridade": "Lendário",
+        }
+    return novo_recorde
+
 
 def pescar():
     pool = escolher_pool()
@@ -174,9 +198,20 @@ def pescar():
             estado.xp -= estado.xp_por_nivel
             print(f"🎉 Parabéns! Você subiu para o nível {estado.nivel}!")
 
+        trofeu_msg = None
+        if raridade == "Lendário":
+            novo_recorde = registrar_trofeu(peixe, kg, pool.get("nome", "Desconhecido"))
+            trofeu_msg = aleatoria_formatada(MENSAGENS_TROFEU_LENDARIO, peixe=peixe, kg=kg)
+            if novo_recorde:
+                trofeu_msg += " 🏅 Novo recorde!"
+            else:
+                trofeu_msg += " 🏅 Troféu registrado anteriormente."
+
         mut_txt = f" ({mutacao})" if mutacao else ""
         print(f"\n🎣 Você pescou: {peixe}{mut_txt} [{raridade}] - {kg:.2f}kg")
         print(f"💰 Valor: ${valor:.2f}")
+        if trofeu_msg:
+            print(trofeu_msg)
 
         if raridade == "Lendário" and not estado.desbloqueou_cacadas:
             estado.desbloqueou_cacadas = True
