@@ -21,6 +21,7 @@ def mostrar_inventario():
         if escolha == "1":
             listar_peixes()
         elif escolha == "2":
+            limpar_console()
             if pode_trocar:
                 trocar_vara()
             else:
@@ -111,7 +112,6 @@ def mercado_varas():
 
 def trocar_vara():
     while True:
-        limpar_console()
         print("🎒 Trocar de Vara\n")
         print(f"Equipada: {estado.vara_atual}\n")
         for i, nome in enumerate(estado.varas_possuidas, 1):
