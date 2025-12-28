@@ -6,13 +6,7 @@ from varas import VARAS
 from utils import limpar_console
 from falas import aleatoria, FALAS_PESCA, FALAS_POOLS
 from eventos import sortear_evento, ajustar_pesos_raridade, EVENTO_PADRAO
-
-MUTACOES = {
-    "Congelado": 1.2,
-    "Chamuscado": 1.15,
-    "Anômalo": 1.3,
-    "Celestial": 1.6
-}
+from dados import MUTACOES
 
 TECLAS = ["w", "a", "s", "d"]
 
