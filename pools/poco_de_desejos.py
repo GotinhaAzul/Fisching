@@ -14,5 +14,5 @@ PEIXES = {
     "Lendário": ["Koi Dourada", "Espírito do Poço"],
 }
 
-VALOR_MULT = 1.3
+VALOR_MULT = 1.2
 NIVEL_MIN = 5
