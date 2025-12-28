@@ -11,6 +11,7 @@ for arquivo in os.listdir(pasta):
         nome_pool = getattr(mod, "NOME_POOL", None)
         if nome_pool:
             POOLS[nome_pool] = {
+                "nome": nome_pool,
                 "peixes": getattr(mod, "PEIXES"),
                 "raridades": getattr(mod, "RARIDADES"),
                 "valor_base": getattr(mod, "VALOR_MULT"),

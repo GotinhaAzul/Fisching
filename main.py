@@ -4,6 +4,7 @@ from inventario import mostrar_inventario, vender_peixe_individual, vender_tudo,
 from cozinha import cozinhar
 from utils import limpar_console
 from bestiario import BESTIARIO
+from falas import FALAS_MENU, aleatoria
 
 def menu():
     while True:
@@ -12,6 +13,8 @@ def menu():
         print(f"💰 Dinheiro: ${estado.dinheiro:.2f}")
         print(f"🎯 Vara atual: {estado.vara_atual}")
         print(f"⭐ Nível: {estado.nivel} - XP: {estado.xp}/{estado.xp_por_nivel}\n")
+
+        print(f"{aleatoria(FALAS_MENU)}\n")
 
         print("1. Pescar")
         print("2. Inventário")
