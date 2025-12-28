@@ -1,6 +1,7 @@
 dinheiro = 0
 inventario = []
 vara_atual = "Basica"
+varas_possuidas = ["Basica"]
 peixes_descobertos = set()
 
 nivel = 1        # nível do jogador

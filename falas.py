@@ -20,5 +20,14 @@ FALAS_PESCA = [
     "O peixe parece querer fugir!"
 ]
 
+# Falas gerais para dar vida ao jogo (podem ser expandidas livremente).
+FALAS_AMBIENTE = [
+    "Uma brisa com cheiro de mar passa por você.",
+    "Um gaivota pousa próxima e observa curiosa.",
+    "Você ouve um barco ao longe balançando na maré.",
+    "O sol reflete na água e ofusca por um instante.",
+    "Pequenas ondas batem no píer num ritmo relaxante."
+]
+
 def aleatoria(lista):
     return random.choice(lista)
