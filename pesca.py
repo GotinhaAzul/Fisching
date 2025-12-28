@@ -38,6 +38,53 @@ MENSAGENS_TROFEU_LENDARIO = [
     "✨ Você exibe {peixe} ({kg:.2f}kg) como um troféu brilhante. Até os espíritos do rio prestam atenção.",
 ]
 
+POCO_DE_DESEJOS_NOME = "Poço de desejos"
+LENDARIOS_PARA_POCO_DE_DESEJOS = 3
+
+
+def requisitos_poco_de_desejos():
+    pool_info = POOLS.get(POCO_DE_DESEJOS_NOME)
+    if not pool_info:
+        return True, []
+
+    faltantes = []
+    if estado.nivel < pool_info["nivel_min"]:
+        faltantes.append(f"nível {pool_info['nivel_min']}")
+    if estado.lendarios_pescados < LENDARIOS_PARA_POCO_DE_DESEJOS:
+        faltantes.append(f"pescar {LENDARIOS_PARA_POCO_DE_DESEJOS} peixes Lendários")
+
+    return len(faltantes) == 0, faltantes
+
+
+def pool_desbloqueada(pool):
+    if pool["nome"] == POCO_DE_DESEJOS_NOME:
+        return estado.desbloqueou_poco_de_desejos
+    return estado.nivel >= pool["nivel_min"]
+
+
+def descricao_pool_bloqueada(pool):
+    if pool["nome"] == POCO_DE_DESEJOS_NOME:
+        _, faltantes = requisitos_poco_de_desejos()
+        if faltantes:
+            return f"??? ({' e '.join(faltantes)})"
+        return "??? (um desejo adormecido aguarda o momento certo)"
+    return f"??? (nível {pool['nivel_min']})"
+
+
+def pools_desbloqueados():
+    return [pool_info for pool_info in POOLS.values() if pool_desbloqueada(pool_info)]
+
+
+def tentar_desbloquear_poco_de_desejos():
+    if estado.desbloqueou_poco_de_desejos:
+        return None
+
+    liberado, _ = requisitos_poco_de_desejos()
+    if liberado:
+        estado.desbloqueou_poco_de_desejos = True
+        return "\n🌠 Você sente uma energia diferente: um Poço de Desejos agora está acessível!"
+    return None
+
 def minigame_reacao(vara, raridade):
     if raridade == "Apex":
         tempo = 1.0 + vara["bonus_reacao"]
@@ -65,20 +112,17 @@ def escolher_pool():
         print(aleatoria(FALAS_POOLS) + "\n")
         print("🌊 Escolha onde pescar:")
 
-        opcoes_disponiveis = []
-        nomes_opcoes = []
+        opcoes_menu = []
 
         # Monta lista de pools disponíveis e bloqueadas
-        for pool_name, pool in POOLS.items():
-            if estado.nivel >= pool["nivel_min"]:
-                opcoes_disponiveis.append(pool)
-                nomes_opcoes.append(pool_name)
+        for pool in POOLS.values():
+            if pool_desbloqueada(pool):
+                opcoes_menu.append({"pool": pool, "nome": pool["nome"]})
             else:
-                # Áreas bloqueadas aparecem como "???"
-                nomes_opcoes.append(f"??? (nível {pool['nivel_min']})")
+                opcoes_menu.append({"pool": None, "nome": descricao_pool_bloqueada(pool)})
 
-        for i, nome in enumerate(nomes_opcoes, 1):
-            print(f"{i}. {nome}")
+        for i, opcao in enumerate(opcoes_menu, 1):
+            print(f"{i}. {opcao['nome']}")
         print("0. Voltar ao menu")
 
         escolha = input("> ")
@@ -90,8 +134,10 @@ def escolher_pool():
             return None
 
         # Só permite selecionar pools desbloqueadas
-        if 1 <= escolha <= len(opcoes_disponiveis):
-            return opcoes_disponiveis[escolha - 1]
+        if 1 <= escolha <= len(opcoes_menu):
+            selecionada = opcoes_menu[escolha - 1]
+            if selecionada["pool"] is not None:
+                return selecionada["pool"]
 
 
 def registrar_trofeu(peixe, kg, pool_nome):
@@ -200,12 +246,15 @@ def pescar():
 
         trofeu_msg = None
         if raridade == "Lendário":
+            estado.lendarios_pescados += 1
             novo_recorde = registrar_trofeu(peixe, kg, pool.get("nome", "Desconhecido"))
             trofeu_msg = aleatoria_formatada(MENSAGENS_TROFEU_LENDARIO, peixe=peixe, kg=kg)
             if novo_recorde:
                 trofeu_msg += " 🏅 Novo recorde!"
             else:
                 trofeu_msg += " 🏅 Troféu registrado anteriormente."
+
+        mensagem_poco = tentar_desbloquear_poco_de_desejos()
 
         mut_txt = f" ({mutacao})" if mutacao else ""
         print(f"\n🎣 Você pescou: {peixe}{mut_txt} [{raridade}] - {kg:.2f}kg")
@@ -216,6 +265,8 @@ def pescar():
         if raridade == "Lendário" and not estado.desbloqueou_cacadas:
             estado.desbloqueou_cacadas = True
             print("\n🗝️  Você desbloqueou as Caçadas APEX no menu!")
+        if mensagem_poco:
+            print(mensagem_poco)
 
         print("\n[P] Pescar novamente na mesma pool")
         print("[M] Mudar de local")
@@ -258,9 +309,7 @@ def exibir_contexto(pool, evento):
 
 
 def ha_outros_locais_disponiveis(pool_atual_nome):
-    desbloqueados = [
-        pool_info for pool_info in POOLS.values() if estado.nivel >= pool_info["nivel_min"]
-    ]
+    desbloqueados = pools_desbloqueados()
     return any(pool_info["nome"] != pool_atual_nome for pool_info in desbloqueados)
 
 
