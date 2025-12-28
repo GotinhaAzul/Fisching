@@ -14,5 +14,6 @@ PEIXES = {
     "Lendário": ["Kraken", "Cthulhu Juvenil"]
 }
 
+
 VALOR_MULT = 1.15
-NIVEL_MIN = 3
+NIVEL_MIN = 2
