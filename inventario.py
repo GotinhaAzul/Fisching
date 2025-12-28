@@ -4,13 +4,40 @@ from utils import limpar_console
 from falas import aleatoria, FALAS_MERCADO
 
 def mostrar_inventario():
+    while True:
+        limpar_console()
+        print("🎒 Inventário\n")
+        print(f"🎯 Vara atual: {estado.vara_atual}")
+        print(f"🎣 Peixes: {len(estado.inventario)}")
+
+        pode_trocar = len(estado.varas_possuidas) > 1
+
+        print("\nOpções:")
+        print("1. Ver peixes")
+        print("2. Trocar de vara" + ("" if pode_trocar else " (necessário ter outra vara)"))
+        print("0. Voltar")
+        escolha = input("> ")
+
+        if escolha == "1":
+            listar_peixes()
+        elif escolha == "2":
+            limpar_console()
+            if pode_trocar:
+                trocar_vara()
+            else:
+                print("Você ainda não possui outra vara.")
+                input("Pressione ENTER para continuar.")
+        elif escolha == "0":
+            break
+
+def listar_peixes():
     limpar_console()
+    print("🐟 Seus Peixes\n")
     if not estado.inventario:
         print("Inventário vazio.")
     else:
         for i, peixe in enumerate(estado.inventario, 1):
-            mut = f" ({peixe['mutacao']})" if peixe["mutacao"] else ""
-            print(f"{i}. {peixe['nome']}{mut} - {peixe['raridade']} - {peixe['kg']:.2f}kg")
+            print(formatar_item(i, peixe))
     input("\nPressione ENTER para voltar.")
 
 def vender_peixe_individual():
@@ -20,8 +47,7 @@ def vender_peixe_individual():
         return
 
     for i, peixe in enumerate(estado.inventario):
-        mut = f" {peixe['mutacao']}" if peixe["mutacao"] else ""
-        print(f"{i+1}. {peixe['nome']}{mut} ({peixe['raridade']}) - ${peixe['valor']:.2f}")
+        print(f"{i+1}. {formatar_item_sem_indice(peixe)} - ${peixe['valor']:.2f}")
 
     escolha = input("Digite o número do peixe para vender (0 para cancelar): ")
     if not escolha.isdigit():
@@ -70,10 +96,50 @@ def mercado_varas():
         if 1 <= escolha <= len(VARAS):
             nome_vara = list(VARAS.keys())[escolha - 1]
             preco = VARAS[nome_vara]['preco']
-            if estado.dinheiro >= preco:
+            if nome_vara in estado.varas_possuidas:
+                estado.vara_atual = nome_vara
+                print(f"Você já possuía a vara {nome_vara}. Ela foi equipada!")
+            elif estado.dinheiro >= preco:
                 estado.dinheiro -= preco
                 estado.vara_atual = nome_vara
+                estado.varas_possuidas.append(nome_vara)
                 print(f"Você comprou a vara {nome_vara} e ela está equipada!")
             else:
                 print("💸 Dinheiro insuficiente!")
             input("Pressione ENTER para continuar.")
+
+def trocar_vara():
+    while True:
+        print("🎒 Trocar de Vara\n")
+        print(f"Equipada: {estado.vara_atual}\n")
+        for i, nome in enumerate(estado.varas_possuidas, 1):
+            dados = VARAS[nome]
+            equipada = " (Equipada)" if nome == estado.vara_atual else ""
+            print(f"{i}. {nome}{equipada} - {dados['descricao']}")
+        print("0. Voltar")
+
+        escolha = input("> ")
+        if not escolha.isdigit():
+            continue
+
+        escolha = int(escolha)
+        if escolha == 0:
+            break
+
+        if 1 <= escolha <= len(estado.varas_possuidas):
+            estado.vara_atual = estado.varas_possuidas[escolha - 1]
+            print(f"Você equipou a vara {estado.vara_atual}!")
+            input("Pressione ENTER para continuar.")
+            break
+
+def formatar_item(indice, item):
+    return f"{indice}. {formatar_item_sem_indice(item)}"
+
+
+def formatar_item_sem_indice(item):
+    tipo = item.get("tipo", "peixe")
+    if tipo == "prato":
+        return f"{item['nome']} [Prato] - ${item['valor']:.2f}"
+    mut = f" ({item['mutacao']})" if item.get("mutacao") else ""
+    kg = item.get("kg", 0)
+    return f"{item['nome']}{mut} - {item.get('raridade','?')} - {kg:.2f}kg"
