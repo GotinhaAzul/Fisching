@@ -14,10 +14,12 @@ CACADAS = [
             "mutacoes": {"Divino": 1},
         },
         "apex_peixes": ["Leviatã Primevo", "Serpente das Profundezas"],
-        "peso_min": 80,
-        "peso_max": 120,
-        "valor_base": 350,
-        "tentativas": 5,
+        "peso_min": 95,
+        "peso_max": 140,
+        "valor_base": 420,
+        "valor_mult": 1.25,
+        "xp_mult": 1.35,
+        "tentativas": 10,
     },
     {
         "nome": "Caçada da Fênix Marinha",
@@ -27,14 +29,18 @@ CACADAS = [
             "mutacoes": {"Temporal": 1},
         },
         "apex_peixes": ["Fênix Marinha", "Arpão Celeste"],
-        "peso_min": 75,
-        "peso_max": 110,
-        "valor_base": 300,
-        "tentativas": 5,
+        "peso_min": 70,
+        "peso_max": 100,
+        "valor_base": 330,
+        "valor_mult": 1.15,
+        "xp_mult": 1.2,
+        "tentativas": 9,
     },
 ]
 
-CHANCE_APEX = 0.05
+CHANCE_APEX_BASE = 0.05
+CHANCE_APEX_INCREMENTO = 0.05
+CHANCE_APEX_TETO = 0.50
 
 
 def _contar_recursos():
@@ -77,6 +83,7 @@ def _consumir_recursos(cacada):
 def _pescar_em_cacada(cacada):
     vara = VARAS[estado.vara_atual]
     tentativas_restantes = cacada.get("tentativas", 5)
+    chance_atual = CHANCE_APEX_BASE
     while tentativas_restantes > 0:
         if vara["peso_max"] < cacada["peso_min"]:
             print(
@@ -90,7 +97,11 @@ def _pescar_em_cacada(cacada):
         limpar_console()
         print(f"🎯 Caçada: {cacada['nome']}")
         print(cacada["descricao"])
-        print(f"Chance de fisgar um peixe APEX: {int(CHANCE_APEX * 100)}%")
+        chance_percentual = int(chance_atual * 100)
+        progresso = int((chance_atual / CHANCE_APEX_TETO) * 20)
+        barra = "█" * progresso + "·" * (20 - progresso)
+        aviso_teto = " (teto atingido)" if chance_atual >= CHANCE_APEX_TETO else ""
+        print(f"Chance de fisgar um peixe APEX: {chance_percentual}% {barra}{aviso_teto}")
         print(f"Tentativas restantes: {tentativas_restantes}")
         print("\n[L] Lançar isca")
         print("[V] Voltar")
@@ -101,8 +112,13 @@ def _pescar_em_cacada(cacada):
 
         tentativas_restantes -= 1
 
-        if random.random() > CHANCE_APEX:
+        if random.random() > chance_atual:
             print("\n🌌 O alvo APEX não apareceu desta vez.")
+            if chance_atual < CHANCE_APEX_TETO:
+                chance_atual = min(CHANCE_APEX_TETO, chance_atual + CHANCE_APEX_INCREMENTO)
+                print(f"🔼 Chance aumentada para {int(chance_atual * 100)}%.")
+            else:
+                print("⚠️ Você já está no teto de chance para esta caçada.")
             input("\nPressione ENTER para tentar novamente")
             continue
 
@@ -127,7 +143,7 @@ def _pescar_em_cacada(cacada):
         if kg > vara["peso_max"]:
             kg = vara["peso_max"]
 
-        valor = (kg * 0.1) * cacada["valor_base"] * mult_mut * RARIDADE_VALOR_MULT.get(raridade, 1)
+        valor = (kg * 0.1) * cacada["valor_base"] * cacada.get("valor_mult", 1) * mult_mut * RARIDADE_VALOR_MULT.get(raridade, 1)
 
         estado.inventario.append(
             {
@@ -140,12 +156,14 @@ def _pescar_em_cacada(cacada):
         )
         estado.peixes_descobertos.add(peixe)
 
-        xp_ganho = int(kg * RARIDADE_XP_MULT.get(raridade, 1))
+        xp_ganho = int(kg * RARIDADE_XP_MULT.get(raridade, 1) * cacada.get("xp_mult", 1))
         xp_ganho = max(1, xp_ganho)
         estado.xp += xp_ganho
         print(f"\n🎣 Você pescou: {peixe} [{raridade}] - {kg:.2f}kg")
         print(f"💰 Valor: ${valor:.2f}")
         print(f"⭐ Você ganhou {xp_ganho} XP!")
+
+        chance_atual = CHANCE_APEX_BASE
 
         while estado.xp >= estado.xp_por_nivel:
             estado.nivel += 1
