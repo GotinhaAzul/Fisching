@@ -26,7 +26,7 @@ def mostrar_lista_paginada(linhas, titulo=None, itens_por_pagina=12, prompt="> "
             print("Nada para mostrar por enquanto.")
 
         if total_paginas > 1:
-            print(f"\nPágina {pagina + 1}/{total_paginas} - (n) próxima, (p) anterior, (0) voltar")
+            print(f"\nPágina {pagina + 1}/{total_paginas} - (N) próxima, (P) anterior, (0) voltar")
         else:
             print("\n0. Voltar")
 
