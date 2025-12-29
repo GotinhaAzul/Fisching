@@ -153,7 +153,11 @@ def pescar():
             raridade = "Secreto"
             peixe = random.choice(PEIXES_SECRETOS)
         else:
-            raridades_ajustadas = ajustar_pesos_raridade(pool["raridades"], evento.get("bonus_raridade"))
+            raridades_ajustadas = ajustar_pesos_raridade(
+                pool["raridades"],
+                evento.get("bonus_raridade"),
+                vara.get("bonus_raridade", 0.0),
+            )
             raridade = random.choices(
                 [r[0] for r in raridades_ajustadas],
                 weights=[r[1] for r in raridades_ajustadas]
@@ -325,7 +329,11 @@ def gerar_dica_alternativas(pool, evento, raridades_bloqueadas=None):
 
 
 def calcular_expectativas(pool, evento, vara):
-    raridades_ajustadas = ajustar_pesos_raridade(pool["raridades"], evento.get("bonus_raridade"))
+    raridades_ajustadas = ajustar_pesos_raridade(
+        pool["raridades"],
+        evento.get("bonus_raridade"),
+        vara.get("bonus_raridade", 0.0),
+    )
     pesos_totais = sum(max(item[1], 0) for item in raridades_ajustadas)
     raridades_bloqueadas = []
 
