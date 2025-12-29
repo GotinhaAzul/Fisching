@@ -1,12 +1,44 @@
 import json
 import os
 import shutil
+from pathlib import Path
 
 import estado
 
 
 ARQUIVO_SAVE = "savegame.json"
 VERSAO_SAVE = 1
+
+
+def _pasta_save_padrao():
+    """Retorna um diretório de save com maior chance de ter permissão de escrita."""
+    candidatos = [
+        os.getenv("LOCALAPPDATA"),
+        os.getenv("APPDATA"),
+        os.getenv("XDG_DATA_HOME"),
+        Path.home() / ".local" / "share",
+        Path.home(),
+    ]
+
+    for base in candidatos:
+        if not base:
+            continue
+
+        caminho_base = Path(base)
+        destino = caminho_base / "Fisching"
+        try:
+            destino.mkdir(parents=True, exist_ok=True)
+            return destino
+        except OSError:
+            # Se não conseguir criar, tenta o próximo candidato.
+            continue
+
+    # Último recurso: usa o diretório atual.
+    return Path.cwd()
+
+
+def _caminho_padrao_save():
+    return _pasta_save_padrao() / ARQUIVO_SAVE
 
 
 def estado_para_dict():
@@ -48,38 +80,56 @@ def aplicar_estado(dados):
     estado.missoes_concluidas = dados.get("missoes_concluidas", 0)
 
 
-def salvar_jogo(caminho=ARQUIVO_SAVE):
-    dados = estado_para_dict()
-    temp_path = f"{caminho}.tmp"
-    backup_path = f"{caminho}.bak"
+def _resolver_caminho(caminho):
+    if caminho is None:
+        return _caminho_padrao_save()
+    return Path(caminho)
 
-    with open(temp_path, "w", encoding="utf-8") as f:
+
+def salvar_jogo(caminho=None):
+    destino = _resolver_caminho(caminho)
+    destino.parent.mkdir(parents=True, exist_ok=True)
+
+    dados = estado_para_dict()
+    temp_path = destino.with_suffix(destino.suffix + ".tmp")
+    backup_path = destino.with_suffix(destino.suffix + ".bak")
+
+    with temp_path.open("w", encoding="utf-8") as f:
         json.dump(dados, f, ensure_ascii=False, indent=2)
 
     # Mantém um backup do save anterior para recuperação em caso de corrupção.
-    if os.path.exists(caminho):
-        shutil.copyfile(caminho, backup_path)
+    if destino.exists():
+        shutil.copyfile(destino, backup_path)
     else:
         shutil.copyfile(temp_path, backup_path)
 
-    os.replace(temp_path, caminho)
+    os.replace(temp_path, destino)
 
 
-def carregar_jogo(caminho=ARQUIVO_SAVE, quiet=False):
-    if not os.path.exists(caminho):
+def carregar_jogo(caminho=None, quiet=False):
+    caminho_destino = _resolver_caminho(caminho)
+
+    # Se estivermos usando o caminho padrão e ele não existir, tentamos um save na pasta atual
+    # para compatibilidade retroativa.
+    if caminho is None and not caminho_destino.exists():
+        caminho_legado = Path.cwd() / ARQUIVO_SAVE
+        if caminho_legado.exists():
+            caminho_destino = caminho_legado
+
+    if not caminho_destino.exists():
         if not quiet:
             print("⚠️ Nenhum save encontrado.")
         return False
 
-    def _ler_caminho(alvo):
-        with open(alvo, "r", encoding="utf-8") as f:
+    def _ler_caminho(alvo: Path):
+        with alvo.open("r", encoding="utf-8") as f:
             return json.load(f)
 
     try:
-        dados = _ler_caminho(caminho)
+        dados = _ler_caminho(caminho_destino)
     except Exception as erro_principal:
-        backup_path = f"{caminho}.bak"
-        if os.path.exists(backup_path):
+        backup_path = caminho_destino.with_suffix(caminho_destino.suffix + ".bak")
+        if backup_path.exists():
             try:
                 dados = _ler_caminho(backup_path)
                 if not quiet:
