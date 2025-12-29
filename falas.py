@@ -14,6 +14,7 @@ FALAS_POOLS = [
     "As águas do oceano profundo brilham estranhamente..."
 ]
 
+
 FALAS_PESCA = [
     "Pescando com atenção...",
     "Você sente um puxão na vara!",
@@ -30,7 +31,8 @@ FALAS_MENU = [
     "Rumores dizem que peixes mutantes surgiram recentemente.",
     "Um gato aparece por perto, de olho no seu balde vazio.",
     "O céu está limpo, perfeito para um dia de pesca.",
-    "Algumas pessoas apostam em quem pega o raro primeiro."
+    "Algumas pessoas apostam em quem pega o raro primeiro.",
+    "Não conhece o peixe? Pesque um pouco mais!"
 ]
 
 FALAS_VARA_REFORCADA = [
