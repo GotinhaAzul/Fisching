@@ -64,10 +64,7 @@ def pool_desbloqueada(pool):
 
 def descricao_pool_bloqueada(pool):
     if pool["nome"] == POCO_DE_DESEJOS_NOME:
-        _, faltantes = requisitos_poco_de_desejos()
-        if faltantes:
-            return f"??? ({' e '.join(faltantes)})"
-        return "??? (um desejo adormecido aguarda o momento certo)"
+        return "??? (Apenas quando as lendas te respeitarem poderá desejar por algo.)"
     return f"??? (nível {pool['nivel_min']})"
 
 
