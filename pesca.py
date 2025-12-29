@@ -82,6 +82,11 @@ def tentar_desbloquear_poco_de_desejos():
         return "\n🌠 Você sente uma energia diferente: um Poço de Desejos agora está acessível!"
     return None
 
+
+def registrar_pescado_por_raridade(raridade):
+    atual = estado.peixes_pescados_por_raridade.get(raridade, 0)
+    estado.peixes_pescados_por_raridade[raridade] = atual + 1
+
 def minigame_reacao(vara, raridade):
     if raridade == "Apex":
         tempo = 1.0 + vara["bonus_reacao"]
@@ -233,6 +238,7 @@ def pescar():
             "kg": kg,
             "valor": valor
         })
+        registrar_pescado_por_raridade(raridade)
 
         # Marca peixe como descoberto no bestiário
         estado.peixes_descobertos.add(peixe)

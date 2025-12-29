@@ -4,7 +4,7 @@ import random
 
 import estado
 from dados import MUTACOES
-from pesca import RARIDADE_VALOR_MULT, RARIDADE_XP_MULT, minigame_reacao
+from pesca import RARIDADE_VALOR_MULT, RARIDADE_XP_MULT, minigame_reacao, registrar_pescado_por_raridade
 from utils import limpar_console, mostrar_lista_paginada
 from varas import VARAS
 
@@ -159,6 +159,7 @@ def _pescar_em_cacada(cacada):
                 "valor": valor,
             }
         )
+        registrar_pescado_por_raridade(raridade)
         estado.peixes_descobertos.add(peixe)
 
         xp_ganho = int(kg * RARIDADE_XP_MULT.get(raridade, 1) * cacada.get("xp_mult", 1))

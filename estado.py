@@ -12,6 +12,15 @@ xp = 0           # experiência atual
 xp_por_nivel = 100  # XP necessário para subir de nível
 lendarios_pescados = 0  # total de peixes lendários já pescados
 
+# Contagem de peixes pescados por raridade
+peixes_pescados_por_raridade = {
+    "Comum": 0,
+    "Incomum": 0,
+    "Raro": 0,
+    "Lendário": 0,
+    "Apex": 0,
+}
+
 # Registro de troféus lendários capturados (melhor peso por peixe)
 trofeus = {}
 

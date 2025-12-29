@@ -1,6 +1,6 @@
 import estado
 from varas import VARAS
-from utils import limpar_console, mostrar_lista_paginada
+from utils import formatar_contagem_por_raridade, limpar_console, mostrar_lista_paginada
 from falas import aleatoria, FALAS_MERCADO
 
 def mostrar_inventario():
@@ -9,6 +9,10 @@ def mostrar_inventario():
         print("🎒 Inventário\n")
         print(f"🎯 Vara atual: {estado.vara_atual}")
         print(f"🎣 Peixes: {len(estado.inventario)}")
+        contagem = formatar_contagem_por_raridade(
+            estado.peixes_pescados_por_raridade, mostrar_apex=estado.desbloqueou_cacadas
+        )
+        print(f"📊 Pescados por raridade: {contagem}")
 
         pode_trocar = len(estado.varas_possuidas) > 1
 

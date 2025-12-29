@@ -40,3 +40,19 @@ def mostrar_lista_paginada(linhas, titulo=None, itens_por_pagina=12, prompt="> "
             continue
 
         return escolha, pagina
+
+
+def formatar_contagem_por_raridade(contagem, mostrar_apex=True):
+    raridades = ["Comum", "Incomum", "Raro", "Lendário"]
+    if mostrar_apex:
+        raridades.append("Apex")
+
+    partes = []
+    for raridade in raridades:
+        quantidade = contagem.get(raridade, 0)
+        partes.append(f"{raridade}: {quantidade}")
+
+    if not partes:
+        return "Nenhum peixe pescado ainda."
+
+    return " | ".join(partes)
