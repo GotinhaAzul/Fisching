@@ -34,13 +34,16 @@ RARIDADE_INTERVALO_PESO = {
     "Raro": (10, 80),
     "Lendário": (10, 100),
     "Apex": (70, 200),
+    "Secreto": (5, 50),
 }
 
 VALOR_BASE = {
     "Comum": 10,
     "Incomum": 25,
     "Raro": 50,
-    "Lendário": 150
+    "Lendário": 150,
+    "Apex": 300,
+    "Secreto": 400,
 }
 
 MULT_MUTACAO = {
@@ -48,4 +51,12 @@ MULT_MUTACAO = {
     "Rara": 3,
     "Lendária": 6
 }
+
+CHANCE_PEIXE_SECRETO = 0.001
+
+PEIXES_SECRETOS = [
+    "Carpa Prisma",
+    "Luciérnaga Abissal",
+    "Arapaima Velada",
+]
 

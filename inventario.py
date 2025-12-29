@@ -10,7 +10,9 @@ def mostrar_inventario():
         print(f"🎯 Vara atual: {estado.vara_atual}")
         print(f"🎣 Peixes: {len(estado.inventario)}")
         contagem = formatar_contagem_por_raridade(
-            estado.peixes_pescados_por_raridade, mostrar_apex=estado.desbloqueou_cacadas
+            estado.peixes_pescados_por_raridade,
+            mostrar_apex=estado.desbloqueou_cacadas,
+            mostrar_secreto=estado.mostrar_secreto,
         )
         print(f"📊 Pescados por raridade: {contagem}")
 

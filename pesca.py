@@ -13,7 +13,7 @@ from falas import (
     FALAS_VARA_REFORCADA,
 )
 from eventos import sortear_evento, ajustar_pesos_raridade, EVENTO_PADRAO
-from dados import MUTACOES, RARIDADE_INTERVALO_PESO
+from dados import MUTACOES, RARIDADE_INTERVALO_PESO, CHANCE_PEIXE_SECRETO, PEIXES_SECRETOS
 
 TECLAS = ["w", "a", "s", "d"]
 RARIDADE_VALOR_MULT = {
@@ -22,6 +22,7 @@ RARIDADE_VALOR_MULT = {
     "Raro": 2,
     "Lendário": 8,
     "Apex": 12,
+    "Secreto": 20,
 }
 RARIDADE_XP_MULT = {
     "Comum": 1,
@@ -29,6 +30,7 @@ RARIDADE_XP_MULT = {
     "Raro": 2,
     "Lendário": 8,
     "Apex": 12,
+    "Secreto": 15,
 }
 MEDIA_MULT_MUTACAO = sum(MUTACOES.values()) / len(MUTACOES)
 
@@ -178,13 +180,18 @@ def pescar():
         print(aleatoria(FALAS_PESCA) + "\n")
         vara = VARAS[estado.vara_atual]
 
-        raridades_ajustadas = ajustar_pesos_raridade(pool["raridades"], evento.get("bonus_raridade"))
-        raridade = random.choices(
-            [r[0] for r in raridades_ajustadas],
-            weights=[r[1] for r in raridades_ajustadas]
-        )[0]
+        pescou_secreto = random.random() < CHANCE_PEIXE_SECRETO
+        if pescou_secreto:
+            raridade = "Secreto"
+            peixe = random.choice(PEIXES_SECRETOS)
+        else:
+            raridades_ajustadas = ajustar_pesos_raridade(pool["raridades"], evento.get("bonus_raridade"))
+            raridade = random.choices(
+                [r[0] for r in raridades_ajustadas],
+                weights=[r[1] for r in raridades_ajustadas]
+            )[0]
 
-        peixe = random.choice(pool["peixes"][raridade])
+            peixe = random.choice(pool["peixes"][raridade])
 
         mutacao = None
         mult_mut = 1.0
@@ -239,9 +246,12 @@ def pescar():
             "valor": valor
         })
         registrar_pescado_por_raridade(raridade)
+        if raridade == "Secreto" and not estado.mostrar_secreto:
+            estado.mostrar_secreto = True
 
         # Marca peixe como descoberto no bestiário
-        estado.peixes_descobertos.add(peixe)
+        if raridade != "Secreto":
+            estado.peixes_descobertos.add(peixe)
 
         # Concede XP
         xp_base = kg * RARIDADE_XP_MULT.get(raridade, 1)
@@ -343,9 +353,6 @@ def calcular_expectativas(pool, evento, vara):
     pesos_totais = sum(max(item[1], 0) for item in raridades_ajustadas)
     raridades_bloqueadas = []
 
-    if pesos_totais <= 0:
-        return 0.0, 0.0, raridades_bloqueadas
-
     bonus_peso = evento.get("bonus_peso", 1.0)
     bonus_valor = evento.get("bonus_valor", 1.0)
     xp_mult = evento.get("xp_multiplicador", 1.0)
@@ -358,7 +365,7 @@ def calcular_expectativas(pool, evento, vara):
     xp_esperado = 0.0
 
     for raridade, peso in raridades_ajustadas:
-        if peso <= 0:
+        if peso <= 0 or pesos_totais <= 0:
             continue
         intervalo = RARIDADE_INTERVALO_PESO.get(raridade)
         if not intervalo:
@@ -383,5 +390,24 @@ def calcular_expectativas(pool, evento, vara):
 
         valor_esperado += prob * valor
         xp_esperado += prob * xp
+
+    chance_secreto = CHANCE_PEIXE_SECRETO
+    valor_esperado *= (1 - chance_secreto)
+    xp_esperado *= (1 - chance_secreto)
+
+    intervalo_secreto = RARIDADE_INTERVALO_PESO.get("Secreto")
+    if intervalo_secreto and vara["peso_max"] >= intervalo_secreto[0]:
+        peso_medio = ((intervalo_secreto[0] + intervalo_secreto[1]) / 2) * bonus_peso
+        peso_medio = min(peso_medio, vara["peso_max"])
+        valor_secreto = (
+            (peso_medio * 0.1)
+            * pool["valor_base"]
+            * mult_mutacao_esperado
+            * bonus_valor
+            * RARIDADE_VALOR_MULT["Secreto"]
+        )
+        xp_secreto = peso_medio * RARIDADE_XP_MULT["Secreto"] * xp_mult
+        valor_esperado += chance_secreto * valor_secreto
+        xp_esperado += chance_secreto * xp_secreto
 
     return valor_esperado, xp_esperado, raridades_bloqueadas
