@@ -4,7 +4,7 @@ FALAS_MERCADO = [
     "Tem peixes fresquinhos hoje!",
     "Seus peixes valem ouro, sabia?",
     "Não se esqueça de conferir nossas varas especiais!",
-    "Estou oferecendo um desconto especial nas varas hoje!",
+    "Os anciões da ilha recomendam meus serviços!",
     "A água do lago está ótima para pesca hoje!",
     "As melhores mercadorias chegam cedo, aproveite!",
     "Ouvi dizer que um pescador ficou rico vendendo um Apex ontem...",
@@ -85,3 +85,4 @@ def aleatoria(lista):
 
 def aleatoria_formatada(lista, **kwargs):
     return random.choice(lista).format(**kwargs)
+
