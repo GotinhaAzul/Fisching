@@ -2,9 +2,9 @@ NOME_POOL = "Caverna Cristalina"
 
 RARIDADES = [
     ("Comum", 0.50),
-    ("Incomum", 0.28),
-    ("Raro", 0.18),
-    ("Lendário", 0.04),
+    ("Incomum", 0.26),
+    ("Raro", 0.22),
+    ("Lendário", 0.02),
 ]
 
 PEIXES = {
