@@ -1,11 +1,26 @@
 import json
 import os
+import shutil
+from pathlib import Path
 
 import estado
 
 
-ARQUIVO_SAVE = "savegame.json"
 VERSAO_SAVE = 1
+SAVE_DIR = Path(os.path.expanduser("~")) / ".fisching"
+LEGACY_SAVE = Path("savegame.json")
+
+
+def _caminho_save_principal():
+    try:
+        SAVE_DIR.mkdir(parents=True, exist_ok=True)
+        return SAVE_DIR / "savegame.json"
+    except PermissionError:
+        # Fallback: tenta usar diretório atual se pasta do usuário não é gravável.
+        return LEGACY_SAVE
+
+
+ARQUIVO_SAVE = _caminho_save_principal()
 
 
 def estado_para_dict():
@@ -49,23 +64,68 @@ def aplicar_estado(dados):
 
 def salvar_jogo(caminho=ARQUIVO_SAVE):
     dados = estado_para_dict()
-    with open(caminho, "w", encoding="utf-8") as f:
-        json.dump(dados, f, ensure_ascii=False, indent=2)
+    temp_path = Path(f"{caminho}.tmp")
+    backup_path = Path(f"{caminho}.bak")
+
+    try:
+        temp_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(temp_path, "w", encoding="utf-8") as f:
+            json.dump(dados, f, ensure_ascii=False, indent=2)
+    except PermissionError as erro_perm:
+        print(f"❌ Sem permissão para salvar em {temp_path}. Erro: {erro_perm}")
+        return False
+
+    # Mantém um backup do save anterior para recuperação em caso de corrupção.
+    if caminho.exists():
+        shutil.copyfile(caminho, backup_path)
+    else:
+        shutil.copyfile(temp_path, backup_path)
+
+    os.replace(temp_path, caminho)
+    return True
 
 
 def carregar_jogo(caminho=ARQUIVO_SAVE, quiet=False):
-    if not os.path.exists(caminho):
+    candidatos = [Path(caminho)]
+    if LEGACY_SAVE not in candidatos:
+        candidatos.append(LEGACY_SAVE)
+
+    def _primeiro_existente():
+        for cand in candidatos:
+            if cand.exists():
+                return cand
+        return None
+
+    caminho_existente = _primeiro_existente()
+    if caminho_existente is None:
         if not quiet:
             print("⚠️ Nenhum save encontrado.")
         return False
+
+    def _ler_caminho(alvo):
+        with open(alvo, "r", encoding="utf-8") as f:
+            return json.load(f)
+
     try:
-        with open(caminho, "r", encoding="utf-8") as f:
-            dados = json.load(f)
-        aplicar_estado(dados)
-        if not quiet:
-            print("✅ Jogo carregado com sucesso!")
-        return True
-    except Exception as e:
-        if not quiet:
-            print(f"❌ Erro ao carregar save: {e}")
-        return False
+        dados = _ler_caminho(caminho_existente)
+    except Exception as erro_principal:
+        backup_path = Path(f"{caminho_existente}.bak")
+        if backup_path.exists():
+            try:
+                dados = _ler_caminho(backup_path)
+                if not quiet:
+                    print("♻️ Save principal corrompido. Backup restaurado.")
+            except Exception as erro_backup:
+                if not quiet:
+                    print(f"❌ Erro ao carregar save: {erro_principal}")
+                    print(f"❌ Erro ao carregar backup: {erro_backup}")
+                return False
+        else:
+            if not quiet:
+                print(f"❌ Erro ao carregar save: {erro_principal}")
+            return False
+
+    aplicar_estado(dados)
+    if not quiet:
+        print("✅ Jogo carregado com sucesso!")
+    return True
