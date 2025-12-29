@@ -128,7 +128,7 @@ def tentar_desbloquear_poco_de_desejos():
     liberado, _ = requisitos_poco_de_desejos()
     if liberado:
         estado.desbloqueou_poco_de_desejos = True
-        return "\n🌠 Você sente uma energia diferente: um Poço de Desejos agora está acessível!"
+        return "\n🌠 Seus desejos se realizam: um Poço de Desejos agora está acessível!"
     return None
 
 
