@@ -64,7 +64,7 @@ def pool_desbloqueada(pool):
 
 def descricao_pool_bloqueada(pool):
     if pool["nome"] == POCO_DE_DESEJOS_NOME:
-        return "??? (As lendas guardam desejos ocultos.)"
+        return "??? (As lendas aguardam seu desejo.)"
     return f"??? (nível {pool['nivel_min']})"
 
 
