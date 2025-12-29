@@ -87,7 +87,32 @@ def descricao_pool_bloqueada(pool):
 
 
 def pools_desbloqueados():
-    return [pool_info for pool_info in POOLS.values() if pool_desbloqueada(pool_info)]
+    desbloqueados = []
+    for pool_info in POOLS.values():
+        if pool_desbloqueada(pool_info):
+            nome = pool_info["nome"]
+            if nome not in estado.pools_desbloqueadas:
+                estado.pools_desbloqueadas.add(nome)
+                narrativa = narrativa_pool_desbloqueada(pool_info)
+                if narrativa:
+                    print(narrativa)
+            desbloqueados.append(pool_info)
+    return desbloqueados
+
+
+def narrativa_pool_desbloqueada(pool_info):
+    nome = pool_info.get("nome")
+    if not nome or nome in estado.historias_pool_tocadas:
+        return None
+
+    if nome == "Pouso Pirata":
+        estado.historias_pool_tocadas.add(nome)
+        return (
+            "\n🏴‍☠️  Boatos se espalham: os anciãos expulsaram os piratas da ilha, "
+            "mas os tesouros e criaturas que eles atraíram ainda rondam o Pouso Pirata."
+        )
+
+    return None
 
 
 def tentar_desbloquear_poco_de_desejos():

@@ -31,3 +31,7 @@ ultimo_refresh_missoes = 0
 missoes_concluidas = 0
 
 mostrar_secreto = False
+
+# Controle de pools desbloqueadas e histórias já tocadas
+pools_desbloqueadas = set()
+historias_pool_tocadas = set()

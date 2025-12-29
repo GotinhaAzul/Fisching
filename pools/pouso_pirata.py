@@ -20,7 +20,7 @@ PEIXES = {
         "Moreia de Porão",
     ],
     "Raro": [
-        "Marlim da Jolly Roger",
+        "Marlim da Âncora",
         "Arraia do Saque",
     ],
     "Lendário": [

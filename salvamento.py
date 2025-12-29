@@ -61,6 +61,8 @@ def estado_para_dict():
         "ultimo_refresh_missoes": estado.ultimo_refresh_missoes,
         "missoes_concluidas": estado.missoes_concluidas,
         "mostrar_secreto": estado.mostrar_secreto,
+        "pools_desbloqueadas": list(estado.pools_desbloqueadas),
+        "historias_pool_tocadas": list(estado.historias_pool_tocadas),
     }
 
 
@@ -93,6 +95,8 @@ def aplicar_estado(dados):
     estado.mostrar_secreto = dados.get(
         "mostrar_secreto", estado.peixes_pescados_por_raridade.get("Secreto", 0) > 0
     )
+    estado.pools_desbloqueadas = set(dados.get("pools_desbloqueadas", []))
+    estado.historias_pool_tocadas = set(dados.get("historias_pool_tocadas", []))
 
 
 def _resolver_caminho(caminho):
