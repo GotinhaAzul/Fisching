@@ -56,6 +56,7 @@ def cozinhar():
             )
             linhas.append(f"   {receita['descricao']}")
             linhas.append("")
+            linhas.append("")
 
         escolha, _ = mostrar_lista_paginada(linhas, titulo=titulo, itens_por_pagina=10, prompt="> ")
         if escolha == "0":
