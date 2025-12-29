@@ -234,8 +234,9 @@ def pescar():
 
         # Verifica subida de nível
         while estado.xp >= estado.xp_por_nivel:
-            estado.nivel += 1
             estado.xp -= estado.xp_por_nivel
+            estado.nivel += 1
+            estado.xp_por_nivel = estado.calcular_xp_por_nivel(estado.nivel)
             print(f"🎉 Parabéns! Você subiu para o nível {estado.nivel}!")
 
         trofeu_msg = None

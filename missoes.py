@@ -175,7 +175,9 @@ def calcular_dificuldade_mutacoes(mutacoes):
 
 
 def calcular_recompensa(dificuldade, bonus=1.0):
-    return round((120 + estado.nivel * 15) * dificuldade * 0.4 * bonus, 2)
+    recompensa = (120 + estado.nivel * 15) * dificuldade * 0.4 * bonus
+    recompensa_maxima = 500
+    return round(min(recompensa, recompensa_maxima), 2)
 
 
 def missao_concluivel(missao):
