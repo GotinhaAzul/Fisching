@@ -73,6 +73,12 @@ def descricao_pool_bloqueada(pool):
     if pool["nome"] == POCO_DE_DESEJOS_NOME:
         return "??? (As lendas aguardam seu desejo.)"
 
+    if pool["nome"] == "Pouso Pirata":
+        dica = pool.get("dica_bloqueio")
+        if dica:
+            return f"??? (dica: {dica})"
+        return "???"
+
     requisitos = [f"nível {pool['nivel_min']}"]
     if "missoes_min" in pool:
         requisitos.append(f"{pool['missoes_min']} missões")
