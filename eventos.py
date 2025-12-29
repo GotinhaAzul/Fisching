@@ -48,11 +48,16 @@ def sortear_evento(prob_evento=0.35):
     return EVENTO_PADRAO
 
 
-def ajustar_pesos_raridade(raridades, bonus_raridade=None):
-    """Retorna uma lista de (raridade, peso) com os bônus aplicados."""
+def ajustar_pesos_raridade(raridades, bonus_raridade=None, bonus_raridade_vara=0.0):
+    """Retorna uma lista de (raridade, peso) com bônus de eventos e da vara aplicados."""
     bonus_raridade = bonus_raridade or {}
+    raridades_beneficiadas = {"Incomum", "Raro", "Lendário", "Apex", "Secreto"}
+    mult_vara = max(0.0, 1 + bonus_raridade_vara)
+
     ajustados = []
     for raridade, peso in raridades:
         mult = bonus_raridade.get(raridade, 1.0)
+        if raridade in raridades_beneficiadas:
+            mult *= mult_vara
         ajustados.append((raridade, max(peso * mult, 0)))
     return ajustados
