@@ -51,6 +51,7 @@ def estado_para_dict():
         "peixes_descobertos": list(estado.peixes_descobertos),
         "desbloqueou_cacadas": estado.desbloqueou_cacadas,
         "desbloqueou_poco_de_desejos": estado.desbloqueou_poco_de_desejos,
+        "serenidade_desbloqueada": estado.serenidade_desbloqueada,
         "nivel": estado.nivel,
         "xp": estado.xp,
         "xp_por_nivel": estado.xp_por_nivel,
@@ -74,6 +75,7 @@ def aplicar_estado(dados):
     estado.peixes_descobertos = set(dados.get("peixes_descobertos", []))
     estado.desbloqueou_cacadas = dados.get("desbloqueou_cacadas", False)
     estado.desbloqueou_poco_de_desejos = dados.get("desbloqueou_poco_de_desejos", False)
+    estado.serenidade_desbloqueada = dados.get("serenidade_desbloqueada", False)
     estado.nivel = dados.get("nivel", estado.nivel)
     estado.xp = dados.get("xp", estado.xp)
     estado.xp_por_nivel = dados.get("xp_por_nivel", estado.xp_por_nivel)

@@ -89,7 +89,7 @@ def mercado_varas():
         varas_disponiveis = [
             (nome, dados)
             for nome, dados in VARAS.items()
-            if nome in estado.varas_possuidas or estado.missoes_concluidas >= dados.get("missoes_minimas", 0)
+            if _pode_exibir_vara(nome, dados)
         ]
 
         linhas = [
@@ -121,6 +121,12 @@ def mercado_varas():
             else:
                 print("💸 Dinheiro insuficiente!")
             input("Pressione ENTER para continuar.")
+
+
+def _pode_exibir_vara(nome, dados):
+    if nome == "Serenidade" and not estado.serenidade_desbloqueada and nome not in estado.varas_possuidas:
+        return False
+    return nome in estado.varas_possuidas or estado.missoes_concluidas >= dados.get("missoes_minimas", 0)
 
 def trocar_vara():
     while True:

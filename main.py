@@ -8,6 +8,7 @@ from dados import RARIDADE_INTERVALO_PESO
 from falas import FALAS_MENU, aleatoria
 from missoes import menu_missoes
 from salvamento import salvar_jogo, carregar_jogo
+from altar import altar_disponivel, invocar_altar
 
 
 def iniciar_jogo():
@@ -41,8 +42,19 @@ def menu():
         print("5. Bestiário")
         print("6. Missões")
         print("7. Salvar jogo")
+        proximo_indice = 8
         if estado.desbloqueou_cacadas:
-            print("8. Caçadas APEX")
+            print(f"{proximo_indice}. Caçadas APEX")
+            indice_cacadas = str(proximo_indice)
+            proximo_indice += 1
+        else:
+            indice_cacadas = None
+        if altar_disponivel():
+            print(f"{proximo_indice}. Altar")
+            indice_altar = str(proximo_indice)
+            proximo_indice += 1
+        else:
+            indice_altar = None
         print("0. Sair")
 
         op = input("> ")
@@ -62,9 +74,11 @@ def menu():
         elif op == "7":
             salvar_jogo()
             input("💾 Jogo salvo! Pressione ENTER para continuar")
-        elif op == "8" and estado.desbloqueou_cacadas:
+        elif indice_cacadas and op == indice_cacadas:
             from cacadas import menu_cacadas
             menu_cacadas()
+        elif indice_altar and op == indice_altar:
+            invocar_altar()
         elif op == "0":
             break
 
