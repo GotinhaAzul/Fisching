@@ -7,10 +7,13 @@ from utils import limpar_console
 from falas import (
     aleatoria,
     aleatoria_formatada,
+    FALAS_APEX_CAPTURA,
     FALAS_INCENTIVO_VARIAR,
     FALAS_PESCA,
     FALAS_POOLS,
+    FALAS_SECRETO_CAPTURA,
     FALAS_VARA_REFORCADA,
+    MENSAGENS_TROFEU_LENDARIO,
 )
 from eventos import sortear_evento, ajustar_pesos_raridade, EVENTO_PADRAO
 from dados import MUTACOES, RARIDADE_INTERVALO_PESO, CHANCE_PEIXE_SECRETO, PEIXES_SECRETOS
@@ -33,12 +36,6 @@ RARIDADE_XP_MULT = {
     "Secreto": 15,
 }
 MEDIA_MULT_MUTACAO = sum(MUTACOES.values()) / len(MUTACOES)
-
-MENSAGENS_TROFEU_LENDARIO = [
-    "🏆 Troféu lendário! Você ergue {peixe} ({kg:.2f}kg) e sente a energia do local vibrar.",
-    "🌟 Uma lenda nas suas mãos: {peixe} de {kg:.2f}kg! O acampamento inteiro vai comentar.",
-    "✨ Você exibe {peixe} ({kg:.2f}kg) como um troféu brilhante. Até os espíritos do rio prestam atenção.",
-]
 
 POCO_DE_DESEJOS_NOME = "Poço de desejos"
 LENDARIOS_PARA_POCO_DE_DESEJOS = 10
@@ -276,6 +273,12 @@ def pescar():
             else:
                 trofeu_msg += " 🏅 Troféu registrado anteriormente."
 
+        captura_especial = None
+        if raridade == "Apex":
+            captura_especial = aleatoria_formatada(FALAS_APEX_CAPTURA, peixe=peixe, kg=kg)
+        elif raridade == "Secreto":
+            captura_especial = aleatoria_formatada(FALAS_SECRETO_CAPTURA, peixe=peixe, kg=kg)
+
         mensagem_poco = tentar_desbloquear_poco_de_desejos()
 
         mut_txt = f" ({mutacao})" if mutacao else ""
@@ -283,6 +286,8 @@ def pescar():
         print(f"💰 Valor: ${valor:.2f}")
         if trofeu_msg:
             print(trofeu_msg)
+        if captura_especial:
+            print(captura_especial)
 
         if raridade == "Lendário" and not estado.desbloqueou_cacadas:
             estado.desbloqueou_cacadas = True
