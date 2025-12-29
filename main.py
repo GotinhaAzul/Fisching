@@ -6,6 +6,15 @@ from utils import limpar_console
 from bestiario import BESTIARIO
 from falas import FALAS_MENU, aleatoria
 from missoes import menu_missoes
+from salvamento import salvar_jogo, carregar_jogo
+
+
+def iniciar_jogo():
+    # Tenta carregar save automaticamente para reduzir fricção
+    carregado = carregar_jogo(quiet=True)
+    if carregado:
+        print("💾 Save carregado automaticamente.")
+        input("Pressione ENTER para continuar")
 
 
 def menu():
@@ -24,8 +33,9 @@ def menu():
         print("4. Cozinha")
         print("5. Bestiário")
         print("6. Missões")
+        print("7. Salvar jogo")
         if estado.desbloqueou_cacadas:
-            print("7. Caçadas APEX")
+            print("8. Caçadas APEX")
         print("0. Sair")
 
         op = input("> ")
@@ -42,7 +52,10 @@ def menu():
             mostrar_bestiario()
         elif op == "6":
             menu_missoes()
-        elif op == "7" and estado.desbloqueou_cacadas:
+        elif op == "7":
+            salvar_jogo()
+            input("💾 Jogo salvo! Pressione ENTER para continuar")
+        elif op == "8" and estado.desbloqueou_cacadas:
             from cacadas import menu_cacadas
             menu_cacadas()
         elif op == "0":
@@ -90,4 +103,5 @@ def mostrar_bestiario():
     input("\nPressione ENTER para voltar")
 
 
+iniciar_jogo()
 menu()
