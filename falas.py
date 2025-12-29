@@ -6,7 +6,7 @@ FALAS_MERCADO = [
     "Não se esqueça de conferir nossas varas especiais!",
     "Estou oferecendo um desconto especial nas varas hoje!",
     "A água do lago está ótima para pesca hoje!",
-    "As melhores iscas chegam cedo, aproveite!",
+    "As melhores mercadorias chegam cedo, aproveite!",
     "Ouvi dizer que um pescador ficou rico vendendo um Apex ontem...",
 ]
 
@@ -24,7 +24,7 @@ FALAS_PESCA = [
     "Você sente um puxão na vara!",
     "O peixe parece querer fugir!",
     "O anzol vibra, algo grande está mordendo...",
-    "A linha canta, sinal de briga boa!",
+    "A linha canta, o peixe mordeu!",
 ]
 
 FALAS_MENU = [
@@ -40,7 +40,7 @@ FALAS_MENU = [
     "Algumas pessoas apostam em quem pega o raro primeiro.",
     "Não conhece o peixe? Pesque um pouco mais!",
     "O rádio toca histórias sobre um peixe que brilha no escuro.",
-    "O velhinho do cais diz ter visto um Apex ontem à noite.",
+    "O velhinho do cais diz ter visto um peixe estranho ontem à noite.",
     "A maré trouxe conchas estranhas para a praia hoje.",
 ]
 
@@ -50,6 +50,7 @@ FALAS_VARA_REFORCADA = [
     "Peixes desse porte exigem cabos reforçados. Uma vara acima de {peso_min}kg resolveria.",
     "Trocar para uma vara mais robusta vai evitar perder peixes de {peso_min}kg+.",
 ]
+
 
 FALAS_INCENTIVO_VARIAR = [
     "Experimentar outro poço pode destravar peixes diferentes e bônus melhores.",
