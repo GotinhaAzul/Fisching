@@ -41,7 +41,7 @@ MENSAGENS_TROFEU_LENDARIO = [
 ]
 
 POCO_DE_DESEJOS_NOME = "Poço de desejos"
-LENDARIOS_PARA_POCO_DE_DESEJOS = 3
+LENDARIOS_PARA_POCO_DE_DESEJOS = 10
 
 
 def requisitos_poco_de_desejos():
