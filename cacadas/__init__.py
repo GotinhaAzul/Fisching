@@ -1,42 +1,41 @@
+import importlib
+import os
 import random
+
 import estado
+from dados import MUTACOES
+from pesca import RARIDADE_VALOR_MULT, RARIDADE_XP_MULT, minigame_reacao
 from utils import limpar_console
 from varas import VARAS
-from dados import MUTACOES
-from pesca import minigame_reacao, RARIDADE_VALOR_MULT, RARIDADE_XP_MULT
 
-CACADAS = [
-    {
-        "nome": "Caçada do Leviatã",
-        "descricao": "Um titã dos mares responde apenas a sacrifícios lendários específicos.",
-        "sacrificios": {
-            "peixes": {"Kraken": 1, "Nemo": 1},
-            "mutacoes": {"Divino": 1},
-        },
-        "apex_peixes": ["Leviatã Primevo", "Serpente das Profundezas"],
-        "peso_min": 95,
-        "peso_max": 140,
-        "valor_base": 420,
-        "valor_mult": 1.25,
-        "xp_mult": 1.35,
-        "tentativas": 10,
-    },
-    {
-        "nome": "Caçada da Fênix Marinha",
-        "descricao": "As chamas frias do oceano atraem um pássaro mítico quando ofertas raras são feitas.",
-        "sacrificios": {
-            "peixes": {"Enguia Fantasma": 1, "Koi Dourada": 1},
-            "mutacoes": {"Temporal": 1},
-        },
-        "apex_peixes": ["Fênix Marinha", "Arpão Celeste"],
-        "peso_min": 70,
-        "peso_max": 100,
-        "valor_base": 330,
-        "valor_mult": 1.15,
-        "xp_mult": 1.2,
-        "tentativas": 9,
-    },
-]
+CACADAS = []
+
+
+def _carregar_cacadas():
+    pasta = os.path.dirname(__file__)
+    arquivos = [
+        arquivo
+        for arquivo in os.listdir(pasta)
+        if arquivo.endswith(".py") and arquivo != "__init__.py"
+    ]
+
+    for arquivo in sorted(arquivos):
+        mod = importlib.import_module(f"{__package__}.{arquivo[:-3]}")
+
+        novas_cacadas = []
+        if hasattr(mod, "CACADAS"):
+            novas_cacadas.extend(mod.CACADAS)
+        else:
+            cacada = getattr(mod, "CACADA", None)
+            if cacada:
+                novas_cacadas.append(cacada)
+
+        for cacada in novas_cacadas:
+            if cacada.get("nome"):
+                CACADAS.append(cacada)
+
+
+_carregar_cacadas()
 
 CHANCE_APEX_BASE = 0.05
 CHANCE_APEX_INCREMENTO = 0.05
@@ -143,7 +142,13 @@ def _pescar_em_cacada(cacada):
         if kg > vara["peso_max"]:
             kg = vara["peso_max"]
 
-        valor = (kg * 0.1) * cacada["valor_base"] * cacada.get("valor_mult", 1) * mult_mut * RARIDADE_VALOR_MULT.get(raridade, 1)
+        valor = (
+            (kg * 0.1)
+            * cacada["valor_base"]
+            * cacada.get("valor_mult", 1)
+            * mult_mut
+            * RARIDADE_VALOR_MULT.get(raridade, 1)
+        )
 
         estado.inventario.append(
             {
@@ -230,7 +235,10 @@ def menu_cacadas():
             "\nConfirmar sacrifício de "
             + ", ".join(f"{qtd}x {nome}" for nome, qtd in cacada["sacrificios"]["peixes"].items())
             + " e "
-            + (", ".join(f"{qtd}x {mut}" for mut, qtd in cacada["sacrificios"]["mutacoes"].items()) or "nenhuma mutação")
+            + (
+                ", ".join(f"{qtd}x {mut}" for mut, qtd in cacada["sacrificios"]["mutacoes"].items())
+                or "nenhuma mutação"
+            )
             + "? (s/n) "
         ).lower()
         if confirmar != "s":
@@ -238,3 +246,4 @@ def menu_cacadas():
 
         _consumir_recursos(cacada)
         _pescar_em_cacada(cacada)
+

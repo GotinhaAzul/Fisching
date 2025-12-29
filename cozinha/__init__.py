@@ -1,72 +1,43 @@
+import importlib
+import os
+
 import estado
 from utils import limpar_console
 
 # Estrutura de receitas:
 # - ingredientes: dict com chaves opcionais "raridades" e "mutacoes", cada uma mapeando item -> quantidade
 # - multiplicador: valor final = (soma dos valores base dos peixes usados) * multiplicador
-# Para expandir, adicione novos itens em RECEITAS seguindo o mesmo formato.
-RECEITAS = [
-    {
-        "nome": "Grelhado Simples",
-        "ingredientes": {"raridades": {"Comum": 1, "Incomum": 1}},
-        "multiplicador": 1.5,
-        "descricao": "Sabor caseiro que lembra fogueira à beira do lago.",
-    },
-    {
-        "nome": "Ensopado Especial",
-        "ingredientes": {"raridades": {"Incomum": 1, "Raro": 1}},
-        "multiplicador": 1.85,
-        "descricao": "Caldo generoso servido em um tacho fumegante.",
-    },
-    {
-        "nome": "Caldeirada Vibrante",
-        "ingredientes": {"raridades": {"Incomum": 1}, "mutacoes": {"Eletrizado": 1}},
-        "multiplicador": 2.1,
-        "descricao": "Prato que pulsa energia, perfeito para aventureiros cansados.",
-    },
-    {
-        "nome": "Filet Celestial",
-        "ingredientes": {"raridades": {"Raro": 1}, "mutacoes": {"Celestial": 1}},
-        "multiplicador": 2.4,
-        "descricao": "Corte iluminado com brilho suave, digno de um festival.",
-    },
-    {
-        "nome": "Prato Assinado",
-        "ingredientes": {"raridades": {"Raro": 1, "Lendário": 1}},
-        "multiplicador": 2.5,
-        "descricao": "Receita exclusiva do chef, preparada apenas em ocasiões marcantes.",
-    },
-    {
-        "nome": "Risoto da Maré",
-        "ingredientes": {"raridades": {"Comum": 1, "Incomum": 1, "Raro": 1}},
-        "multiplicador": 1.95,
-        "descricao": "Grãos cremosos que destacam a variedade de peixes frescos.",
-    },
-    {
-        "nome": "Taco Tóxico",
-        "ingredientes": {"raridades": {"Comum": 2}, "mutacoes": {"Tóxico": 1}},
-        "multiplicador": 1.8,
-        "descricao": "Picância controlada que surpreende sem ultrapassar o limite seguro.",
-    },
-    {
-        "nome": "Moqueca Encantada",
-        "ingredientes": {"raridades": {"Incomum": 2, "Raro": 1}, "mutacoes": {"Enfeitiçado": 1}},
-        "multiplicador": 2.2,
-        "descricao": "Caldo perfumado que parece brilhar à luz de velas mágicas.",
-    },
-    {
-        "nome": "Caldo Abissal",
-        "ingredientes": {"raridades": {"Raro": 1}, "mutacoes": {"Abissal": 1}},
-        "multiplicador": 2.45,
-        "descricao": "Sopa profunda com sabor denso, feita de criaturas do fundo do mar.",
-    },
-    {
-        "nome": "Banquete Temporal",
-        "ingredientes": {"raridades": {"Lendário": 1}, "mutacoes": {"Temporal": 1}},
-        "multiplicador": 2.5,
-        "descricao": "Prato raro que parece suspender o tempo para apreciar cada garfada.",
-    },
-]
+RECEITAS = []
+
+
+def _carregar_receitas():
+    pasta = os.path.join(os.path.dirname(__file__), "receitas")
+    if not os.path.isdir(pasta):
+        return
+
+    arquivos = [
+        arquivo
+        for arquivo in os.listdir(pasta)
+        if arquivo.endswith(".py") and arquivo != "__init__.py"
+    ]
+
+    for arquivo in sorted(arquivos):
+        mod = importlib.import_module(f"{__package__}.receitas.{arquivo[:-3]}")
+
+        novas_receitas = []
+        if hasattr(mod, "RECEITAS"):
+            novas_receitas.extend(mod.RECEITAS)
+        else:
+            receita = getattr(mod, "RECEITA", None)
+            if receita:
+                novas_receitas.append(receita)
+
+        for receita in novas_receitas:
+            if receita.get("nome"):
+                RECEITAS.append(receita)
+
+
+_carregar_receitas()
 
 
 def cozinhar():
@@ -79,7 +50,10 @@ def cozinhar():
         print("Receitas disponíveis:")
         for i, receita in enumerate(RECEITAS, 1):
             ingredientes = ingredientes_para_texto(receita["ingredientes"])
-            print(f"{i}. {receita['nome']} - x{receita['multiplicador']:.2f} | {ingredientes} | {receita['descricao']}")
+            print(
+                f"{i}. {receita['nome']} - x{receita['multiplicador']:.2f} | "
+                f"{ingredientes} | {receita['descricao']}"
+            )
         print("0. Voltar")
 
         escolha = input("> ")
@@ -256,3 +230,4 @@ def faltantes_para_texto(faltantes):
     partes = [f"{qtd}x {raridade}" for raridade, qtd in faltantes.get("raridades", {}).items()]
     partes.extend(f"{qtd}x Mutação {mut}" for mut, qtd in faltantes.get("mutacoes", {}).items())
     return ", ".join(partes)
+
