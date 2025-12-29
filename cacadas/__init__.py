@@ -234,6 +234,16 @@ def menu_cacadas():
             input("\nPressione ENTER para voltar")
             continue
 
+        vara_atual = VARAS[estado.vara_atual]
+        if vara_atual["peso_max"] < cacada["peso_min"]:
+            print(
+                f"\n❌ Sua vara atual suporta até {vara_atual['peso_max']}kg, "
+                f"mas esta caçada exige no mínimo {cacada['peso_min']}kg."
+            )
+            print("Equipe uma vara mais forte antes de sacrificar seus recursos.")
+            input("\nPressione ENTER para voltar")
+            continue
+
         confirmar = input(
             "\nConfirmar sacrifício de "
             + ", ".join(f"{qtd}x {nome}" for nome, qtd in cacada["sacrificios"]["peixes"].items())
