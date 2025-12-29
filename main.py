@@ -2,7 +2,7 @@ import estado
 from pesca import pescar
 from inventario import mostrar_inventario, vender_peixe_individual, vender_tudo, mercado_varas
 from cozinha import cozinhar
-from utils import limpar_console
+from utils import limpar_console, mostrar_lista_paginada
 from bestiario import BESTIARIO
 from dados import RARIDADE_INTERVALO_PESO
 from falas import FALAS_MENU, aleatoria
@@ -88,29 +88,30 @@ def mercado():
 
 
 def mostrar_bestiario():
-    from utils import limpar_console
-    limpar_console()
-    print("📖 Bestiário\n")
+    titulo = "📖 Bestiário"
     raridades_descobertas = set()
     for peixe in estado.peixes_descobertos:
         info = BESTIARIO.get(peixe)
         if info:
             raridades_descobertas.add(info["raridade"])
 
+    linhas = []
     for nome, info in BESTIARIO.items():
         if nome in estado.peixes_descobertos:
-            print(f"- {nome} [{info['raridade']}] (Pool: {info['pool']})")
+            linhas.append(f"- {nome} [{info['raridade']}] (Pool: {info['pool']})")
         else:
-            print("- ???")  # peixe ainda não descoberto
+            linhas.append("- ???")  # peixe ainda não descoberto
 
-    print("\n📏 Faixas de peso conhecidas por raridade:")
+    linhas.append("")
+    linhas.append("📏 Faixas de peso conhecidas por raridade:")
     for raridade, (peso_min, peso_max) in RARIDADE_INTERVALO_PESO.items():
         faixa_peso = f"{peso_min}-{peso_max}kg" if peso_min is not None and peso_max is not None else "???"
         if raridade in raridades_descobertas:
-            print(f"- {raridade}: {faixa_peso}")
+            linhas.append(f"- {raridade}: {faixa_peso}")
         else:
-            print(f"- {raridade}: ???")
-    input("\nPressione ENTER para voltar")
+            linhas.append(f"- {raridade}: ???")
+
+    mostrar_lista_paginada(linhas, titulo=titulo, itens_por_pagina=12)
 
 
 iniciar_jogo()

@@ -2,7 +2,7 @@ import importlib
 import os
 
 import estado
-from utils import limpar_console
+from utils import limpar_console, mostrar_lista_paginada
 
 # Estrutura de receitas:
 # - ingredientes: dict com chaves opcionais "raridades" e "mutacoes", cada uma mapeando item -> quantidade
@@ -42,30 +42,33 @@ _carregar_receitas()
 
 def cozinhar():
     while True:
-        limpar_console()
-        print("👩‍🍳 Cozinha")
-        print(f"🍽️ Peixes disponíveis: {len(estado.inventario)}")
-        print(f"💰 Dinheiro: ${estado.dinheiro:.2f}\n")
-
-        print("Receitas disponíveis:")
+        titulo = (
+            "👩‍🍳 Cozinha\n"
+            f"🍽️ Peixes disponíveis: {len(estado.inventario)}\n"
+            f"💰 Dinheiro: ${estado.dinheiro:.2f}\n\n"
+            "Receitas disponíveis:"
+        )
+        linhas = []
         for i, receita in enumerate(RECEITAS, 1):
             ingredientes = ingredientes_para_texto(receita["ingredientes"])
-            print(
-                f"{i}. {receita['nome']} - x{receita['multiplicador']:.2f} | "
-                f"{ingredientes} | {receita['descricao']}"
+            linhas.append(
+                f"{i}. {receita['nome']} - x{receita['multiplicador']:.2f} | {ingredientes}"
             )
-        print("0. Voltar")
+            linhas.append(f"   {receita['descricao']}")
+            linhas.append("")
 
-        escolha = input("> ")
+        escolha, _ = mostrar_lista_paginada(linhas, titulo=titulo, itens_por_pagina=10, prompt="> ")
+        if escolha == "0":
+            break
         if not escolha.isdigit():
             continue
 
-        escolha = int(escolha)
-        if escolha == 0:
+        escolha_int = int(escolha)
+        if escolha_int == 0:
             break
 
-        if 1 <= escolha <= len(RECEITAS):
-            receita = RECEITAS[escolha - 1]
+        if 1 <= escolha_int <= len(RECEITAS):
+            receita = RECEITAS[escolha_int - 1]
             if not estado.inventario:
                 print("\nVocê não tem peixes para cozinhar.")
                 input("Pressione ENTER para continuar.")
@@ -230,4 +233,3 @@ def faltantes_para_texto(faltantes):
     partes = [f"{qtd}x {raridade}" for raridade, qtd in faltantes.get("raridades", {}).items()]
     partes.extend(f"{qtd}x Mutação {mut}" for mut, qtd in faltantes.get("mutacoes", {}).items())
     return ", ".join(partes)
-
