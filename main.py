@@ -26,7 +26,9 @@ def menu():
         print(f"🎯 Vara atual: {estado.vara_atual}")
         print(f"⭐ Nível: {estado.nivel} - XP: {estado.xp}/{estado.xp_por_nivel}")
         contagem = formatar_contagem_por_raridade(
-            estado.peixes_pescados_por_raridade, mostrar_apex=estado.desbloqueou_cacadas
+            estado.peixes_pescados_por_raridade,
+            mostrar_apex=estado.desbloqueou_cacadas,
+            mostrar_secreto=estado.mostrar_secreto,
         )
         print(f"📊 Pescados por raridade: {contagem}\n")
 

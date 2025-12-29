@@ -19,6 +19,7 @@ peixes_pescados_por_raridade = {
     "Raro": 0,
     "Lendário": 0,
     "Apex": 0,
+    "Secreto": 0,
 }
 
 # Registro de troféus lendários capturados (melhor peso por peixe)
@@ -28,3 +29,5 @@ trofeus = {}
 missoes_ativas = []
 ultimo_refresh_missoes = 0
 missoes_concluidas = 0
+
+mostrar_secreto = False

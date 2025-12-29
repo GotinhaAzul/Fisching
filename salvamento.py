@@ -60,6 +60,7 @@ def estado_para_dict():
         "missoes_ativas": estado.missoes_ativas,
         "ultimo_refresh_missoes": estado.ultimo_refresh_missoes,
         "missoes_concluidas": estado.missoes_concluidas,
+        "mostrar_secreto": estado.mostrar_secreto,
     }
 
 
@@ -81,6 +82,7 @@ def aplicar_estado(dados):
         "Raro": 0,
         "Lendário": 0,
         "Apex": 0,
+        "Secreto": 0,
     }
     contagem_padrao.update(dados.get("peixes_pescados_por_raridade", {}))
     estado.peixes_pescados_por_raridade = contagem_padrao
@@ -88,6 +90,9 @@ def aplicar_estado(dados):
     estado.missoes_ativas = dados.get("missoes_ativas", [])
     estado.ultimo_refresh_missoes = dados.get("ultimo_refresh_missoes", 0)
     estado.missoes_concluidas = dados.get("missoes_concluidas", 0)
+    estado.mostrar_secreto = dados.get(
+        "mostrar_secreto", estado.peixes_pescados_por_raridade.get("Secreto", 0) > 0
+    )
 
 
 def _resolver_caminho(caminho):
