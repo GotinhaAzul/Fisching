@@ -76,7 +76,7 @@ def descricao_pool_bloqueada(pool):
     if pool["nome"] == "Pouso Pirata":
         dica = pool.get("dica_bloqueio")
         if dica:
-            return f"??? (dica: {dica})"
+            return f"??? ({dica})"
         return "???"
 
     requisitos = [f"nível {pool['nivel_min']}"]
