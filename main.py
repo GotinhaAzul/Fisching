@@ -2,7 +2,7 @@ import estado
 from pesca import pescar
 from inventario import mostrar_inventario, vender_peixe_individual, vender_tudo, mercado_varas
 from cozinha import cozinhar
-from utils import limpar_console, mostrar_lista_paginada
+from utils import formatar_contagem_por_raridade, limpar_console, mostrar_lista_paginada
 from bestiario import BESTIARIO
 from dados import RARIDADE_INTERVALO_PESO
 from falas import FALAS_MENU, aleatoria
@@ -24,7 +24,11 @@ def menu():
         print("🎣 JOGO DE PESCA")
         print(f"💰 Dinheiro: ${estado.dinheiro:.2f}")
         print(f"🎯 Vara atual: {estado.vara_atual}")
-        print(f"⭐ Nível: {estado.nivel} - XP: {estado.xp}/{estado.xp_por_nivel}\n")
+        print(f"⭐ Nível: {estado.nivel} - XP: {estado.xp}/{estado.xp_por_nivel}")
+        contagem = formatar_contagem_por_raridade(
+            estado.peixes_pescados_por_raridade, mostrar_apex=estado.desbloqueou_cacadas
+        )
+        print(f"📊 Pescados por raridade: {contagem}\n")
 
         print(f"{aleatoria(FALAS_MENU)}\n")
 

@@ -55,6 +55,7 @@ def estado_para_dict():
         "xp": estado.xp,
         "xp_por_nivel": estado.xp_por_nivel,
         "lendarios_pescados": estado.lendarios_pescados,
+        "peixes_pescados_por_raridade": estado.peixes_pescados_por_raridade,
         "trofeus": estado.trofeus,
         "missoes_ativas": estado.missoes_ativas,
         "ultimo_refresh_missoes": estado.ultimo_refresh_missoes,
@@ -74,6 +75,15 @@ def aplicar_estado(dados):
     estado.xp = dados.get("xp", estado.xp)
     estado.xp_por_nivel = dados.get("xp_por_nivel", estado.xp_por_nivel)
     estado.lendarios_pescados = dados.get("lendarios_pescados", estado.lendarios_pescados)
+    contagem_padrao = {
+        "Comum": 0,
+        "Incomum": 0,
+        "Raro": 0,
+        "Lendário": 0,
+        "Apex": 0,
+    }
+    contagem_padrao.update(dados.get("peixes_pescados_por_raridade", {}))
+    estado.peixes_pescados_por_raridade = contagem_padrao
     estado.trofeus = dados.get("trofeus", {})
     estado.missoes_ativas = dados.get("missoes_ativas", [])
     estado.ultimo_refresh_missoes = dados.get("ultimo_refresh_missoes", 0)
