@@ -85,7 +85,17 @@ def mercado_varas():
     while True:
         limpar_console()
         titulo = aleatoria(FALAS_MERCADO) + "\n\n🛒 Comprar Varas\n" + f"💰 Dinheiro: ${estado.dinheiro:.2f}\n"
-        linhas = [f"{i}. {nome} - ${dados['preco']} - {dados['descricao']}" for i, (nome, dados) in enumerate(VARAS.items(), 1)]
+
+        varas_disponiveis = [
+            (nome, dados)
+            for nome, dados in VARAS.items()
+            if nome in estado.varas_possuidas or estado.missoes_concluidas >= dados.get("missoes_minimas", 0)
+        ]
+
+        linhas = [
+            f"{i}. {nome} - ${dados['preco']} - {dados['descricao']}"
+            for i, (nome, dados) in enumerate(varas_disponiveis, 1)
+        ]
         escolha, pagina = mostrar_lista_paginada(linhas, titulo=titulo, itens_por_pagina=10, prompt="> ")
 
         if escolha == "0":
@@ -97,8 +107,8 @@ def mercado_varas():
         if escolha_int == 0:
             break
 
-        if 1 <= escolha_int <= len(VARAS):
-            nome_vara = list(VARAS.keys())[escolha_int - 1]
+        if 1 <= escolha_int <= len(varas_disponiveis):
+            nome_vara = varas_disponiveis[escolha_int - 1][0]
             preco = VARAS[nome_vara]['preco']
             if nome_vara in estado.varas_possuidas:
                 estado.vara_atual = nome_vara
