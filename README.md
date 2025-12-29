@@ -5,4 +5,6 @@ You will fish in different locations, advance your skills, buy new rods, collect
 Tons of secrets are going to be added in later patch-notes
 And always stay cautious, huge fish wont wait for you!
 
+-To unlock APEX hunts catch your first legendary fish.
+
 Huge thanks to FISCH for inspiration.
