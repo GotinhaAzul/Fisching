@@ -220,6 +220,10 @@ def pescar():
             else:
                 kg *= 0.75
 
+        # Maestria por nível: bônus cumulativo de peso (0.2% por nível, sem limite)
+        bonus_mestria = estado.nivel * 0.002
+        kg *= (1 + bonus_mestria)
+
         if kg > vara["peso_max"]:
             kg = vara["peso_max"]
 
