@@ -5,7 +5,7 @@ import random
 import estado
 from dados import MUTACOES
 from pesca import RARIDADE_VALOR_MULT, RARIDADE_XP_MULT, minigame_reacao
-from utils import limpar_console
+from utils import limpar_console, mostrar_lista_paginada
 from varas import VARAS
 
 CACADAS = []
@@ -184,27 +184,29 @@ def _pescar_em_cacada(cacada):
 
 def menu_cacadas():
     while True:
-        limpar_console()
         peixes_disp, mutacoes_disp = _contar_recursos()
-        print("🔥 Caçadas APEX\n")
-        print("Sacrifique peixes lendários específicos e mutações para acessar um alvo APEX temporariamente.")
-        print("Recursos disponíveis (peixes):")
-        print(", ".join(f"{qtd}x {nome}" for nome, qtd in peixes_disp.items()) or "nenhum")
-        print("Recursos disponíveis (mutações):")
-        print(", ".join(f"{qtd}x {mut}" for mut, qtd in mutacoes_disp.items()) or "nenhum")
-        print()
+        titulo = (
+            "🔥 Caçadas APEX\n\n"
+            "Sacrifique peixes lendários específicos e mutações para acessar um alvo APEX temporariamente.\n"
+            f"Recursos disponíveis (peixes): {', '.join(f'{qtd}x {nome}' for nome, qtd in peixes_disp.items()) or 'nenhum'}\n"
+            f"Recursos disponíveis (mutações): {', '.join(f'{qtd}x {mut}' for mut, qtd in mutacoes_disp.items()) or 'nenhuma'}"
+        )
 
+        linhas = []
         for i, cacada in enumerate(CACADAS, start=1):
-            print(
+            linhas.append(
                 f"{i}. {cacada['nome']} - custo: "
                 f"{', '.join(f'{qtd}x {nome}' for nome, qtd in cacada['sacrificios']['peixes'].items())}; "
                 f"mutações: {', '.join(f'{qtd}x {mut}' for mut, qtd in cacada['sacrificios']['mutacoes'].items()) or 'nenhuma'}"
             )
-            print(f"   Alvos: {', '.join(cacada['apex_peixes'])}")
-            print(f"   {cacada['descricao']}\n")
-        print("0. Voltar")
+            linhas.append(f"   Alvos: {', '.join(cacada['apex_peixes'])}")
+            linhas.append(f"   {cacada['descricao']}")
+            linhas.append("")
 
-        escolha = input("> ")
+        if not linhas:
+            linhas.append("Nenhuma caçada disponível no momento.")
+
+        escolha, _ = mostrar_lista_paginada(linhas, titulo=titulo, itens_por_pagina=9, prompt="> ")
         if escolha == "0":
             break
         if not escolha.isdigit():
@@ -246,4 +248,3 @@ def menu_cacadas():
 
         _consumir_recursos(cacada)
         _pescar_em_cacada(cacada)
-

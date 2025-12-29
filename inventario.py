@@ -1,6 +1,6 @@
 import estado
 from varas import VARAS
-from utils import limpar_console
+from utils import limpar_console, mostrar_lista_paginada
 from falas import aleatoria, FALAS_MERCADO
 
 def mostrar_inventario():
@@ -31,14 +31,14 @@ def mostrar_inventario():
             break
 
 def listar_peixes():
-    limpar_console()
-    print("🐟 Seus Peixes\n")
     if not estado.inventario:
+        limpar_console()
         print("Inventário vazio.")
-    else:
-        for i, peixe in enumerate(estado.inventario, 1):
-            print(formatar_item(i, peixe))
-    input("\nPressione ENTER para voltar.")
+        input("\nPressione ENTER para voltar.")
+        return
+
+    linhas = [formatar_item(i, peixe) for i, peixe in enumerate(estado.inventario, 1)]
+    mostrar_lista_paginada(linhas, titulo="🐟 Seus Peixes", itens_por_pagina=12)
 
 def vender_peixe_individual():
     if not estado.inventario:
@@ -78,23 +78,21 @@ def vender_tudo():
 def mercado_varas():
     while True:
         limpar_console()
-        print(aleatoria(FALAS_MERCADO) + "\n")
-        print("🛒 Comprar Varas")
-        print(f"💰 Dinheiro: ${estado.dinheiro:.2f}\n")
-        for i, (nome, dados) in enumerate(VARAS.items(), 1):
-            print(f"{i}. {nome} - ${dados['preco']} - {dados['descricao']}")
-        print("0. Voltar")
+        titulo = aleatoria(FALAS_MERCADO) + "\n\n🛒 Comprar Varas\n" + f"💰 Dinheiro: ${estado.dinheiro:.2f}\n"
+        linhas = [f"{i}. {nome} - ${dados['preco']} - {dados['descricao']}" for i, (nome, dados) in enumerate(VARAS.items(), 1)]
+        escolha, pagina = mostrar_lista_paginada(linhas, titulo=titulo, itens_por_pagina=10, prompt="> ")
 
-        escolha = input("> ")
+        if escolha == "0":
+            break
         if not escolha.isdigit():
             continue
 
-        escolha = int(escolha)
-        if escolha == 0:
+        escolha_int = int(escolha)
+        if escolha_int == 0:
             break
 
-        if 1 <= escolha <= len(VARAS):
-            nome_vara = list(VARAS.keys())[escolha - 1]
+        if 1 <= escolha_int <= len(VARAS):
+            nome_vara = list(VARAS.keys())[escolha_int - 1]
             preco = VARAS[nome_vara]['preco']
             if nome_vara in estado.varas_possuidas:
                 estado.vara_atual = nome_vara
