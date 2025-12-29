@@ -82,12 +82,21 @@ def escolher_pool():
 
         opcoes_menu = []
 
-        # Monta lista de pools disponíveis e bloqueadas
-        for pool in POOLS.values():
+        pools_ordenadas = sorted(POOLS.values(), key=lambda pool: pool["nome"])
+        pools_desbloqueadas = []
+        pools_bloqueadas = []
+
+        # Monta lista de pools disponíveis e bloqueadas, mantendo as desbloqueadas no topo
+        for pool in pools_ordenadas:
             if pool_desbloqueada(pool):
-                opcoes_menu.append({"pool": pool, "nome": pool["nome"]})
+                pools_desbloqueadas.append(pool)
             else:
-                opcoes_menu.append({"pool": None, "nome": descricao_pool_bloqueada(pool)})
+                pools_bloqueadas.append(pool)
+
+        for pool in pools_desbloqueadas:
+            opcoes_menu.append({"pool": pool, "nome": pool["nome"]})
+        for pool in pools_bloqueadas:
+            opcoes_menu.append({"pool": None, "nome": descricao_pool_bloqueada(pool)})
 
         for i, opcao in enumerate(opcoes_menu, 1):
             print(f"{i}. {opcao['nome']}")
