@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 
 import estado
 
@@ -49,8 +50,19 @@ def aplicar_estado(dados):
 
 def salvar_jogo(caminho=ARQUIVO_SAVE):
     dados = estado_para_dict()
-    with open(caminho, "w", encoding="utf-8") as f:
+    temp_path = f"{caminho}.tmp"
+    backup_path = f"{caminho}.bak"
+
+    with open(temp_path, "w", encoding="utf-8") as f:
         json.dump(dados, f, ensure_ascii=False, indent=2)
+
+    # Mantém um backup do save anterior para recuperação em caso de corrupção.
+    if os.path.exists(caminho):
+        shutil.copyfile(caminho, backup_path)
+    else:
+        shutil.copyfile(temp_path, backup_path)
+
+    os.replace(temp_path, caminho)
 
 
 def carregar_jogo(caminho=ARQUIVO_SAVE, quiet=False):
@@ -58,14 +70,31 @@ def carregar_jogo(caminho=ARQUIVO_SAVE, quiet=False):
         if not quiet:
             print("⚠️ Nenhum save encontrado.")
         return False
+
+    def _ler_caminho(alvo):
+        with open(alvo, "r", encoding="utf-8") as f:
+            return json.load(f)
+
     try:
-        with open(caminho, "r", encoding="utf-8") as f:
-            dados = json.load(f)
-        aplicar_estado(dados)
-        if not quiet:
-            print("✅ Jogo carregado com sucesso!")
-        return True
-    except Exception as e:
-        if not quiet:
-            print(f"❌ Erro ao carregar save: {e}")
-        return False
+        dados = _ler_caminho(caminho)
+    except Exception as erro_principal:
+        backup_path = f"{caminho}.bak"
+        if os.path.exists(backup_path):
+            try:
+                dados = _ler_caminho(backup_path)
+                if not quiet:
+                    print("♻️ Save principal corrompido. Backup restaurado.")
+            except Exception as erro_backup:
+                if not quiet:
+                    print(f"❌ Erro ao carregar save: {erro_principal}")
+                    print(f"❌ Erro ao carregar backup: {erro_backup}")
+                return False
+        else:
+            if not quiet:
+                print(f"❌ Erro ao carregar save: {erro_principal}")
+            return False
+
+    aplicar_estado(dados)
+    if not quiet:
+        print("✅ Jogo carregado com sucesso!")
+    return True
