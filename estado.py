@@ -1,3 +1,14 @@
+import math
+
+
+XP_BASE = 100
+XP_FATOR_CRESCIMENTO = 1.15
+
+
+def calcular_xp_por_nivel(nivel: int) -> int:
+    return math.ceil(XP_BASE * (XP_FATOR_CRESCIMENTO ** (nivel - 1)))
+
+
 dinheiro = 0
 inventario = []
 vara_atual = "Basica"
@@ -8,9 +19,9 @@ desbloqueou_cacadas = False
 desbloqueou_poco_de_desejos = False
 serenidade_desbloqueada = False
 
-nivel = 1        # nível do jogador
-xp = 0           # experiência atual
-xp_por_nivel = 100  # XP necessário para subir de nível
+nivel = 1  # nível do jogador
+xp = 0  # experiência atual
+xp_por_nivel = calcular_xp_por_nivel(nivel)  # XP necessário para subir de nível
 lendarios_pescados = 0  # total de peixes lendários já pescados
 
 # Contagem de peixes pescados por raridade

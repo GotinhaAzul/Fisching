@@ -78,7 +78,7 @@ def aplicar_estado(dados):
     estado.serenidade_desbloqueada = dados.get("serenidade_desbloqueada", False)
     estado.nivel = dados.get("nivel", estado.nivel)
     estado.xp = dados.get("xp", estado.xp)
-    estado.xp_por_nivel = dados.get("xp_por_nivel", estado.xp_por_nivel)
+    estado.xp_por_nivel = estado.calcular_xp_por_nivel(estado.nivel)
     estado.lendarios_pescados = dados.get("lendarios_pescados", estado.lendarios_pescados)
     contagem_padrao = {
         "Comum": 0,
