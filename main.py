@@ -124,7 +124,15 @@ def mostrar_bestiario():
             raridades_descobertas.add(info["raridade"])
 
     linhas = []
-    for nome, info in BESTIARIO.items():
+    ordem_raridade = ["Comum", "Incomum", "Raro", "Lendário", "Apex", "Secreto"]
+    ordem_raridade_idx = {raridade: i for i, raridade in enumerate(ordem_raridade)}
+
+    bestiario_ordenado = sorted(
+        BESTIARIO.items(),
+        key=lambda item: (ordem_raridade_idx.get(item[1].get("raridade"), len(ordem_raridade_idx)), item[0]),
+    )
+
+    for nome, info in bestiario_ordenado:
         if nome in estado.peixes_descobertos:
             linhas.append(f"- {nome} [{info['raridade']}] (Pool: {info['pool']})")
         else:
