@@ -52,7 +52,11 @@ MULT_MUTACAO = {
     "Lendária": 6
 }
 
-CHANCE_PEIXE_SECRETO = 0.001
+RARIDADE_PESO_AJUSTE_GLOBAL = {
+    "Lendário": 0.9,
+}
+
+CHANCE_PEIXE_SECRETO = 0.00025
 
 PEIXES_SECRETOS = [
     "Carpa Prisma",

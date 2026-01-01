@@ -1,5 +1,7 @@
 import random
 
+from dados import RARIDADE_PESO_AJUSTE_GLOBAL
+
 # Cada evento dá um tempero diferente às sessões de pesca:
 # - bonus_raridade: multiplica o peso de determinadas raridades ao sorteá-las
 # - bonus_mutacao: soma à chance base de obter mutação
@@ -57,6 +59,7 @@ def ajustar_pesos_raridade(raridades, bonus_raridade=None, bonus_raridade_vara=0
     ajustados = []
     for raridade, peso in raridades:
         mult = bonus_raridade.get(raridade, 1.0)
+        mult *= RARIDADE_PESO_AJUSTE_GLOBAL.get(raridade, 1.0)
         if raridade in raridades_beneficiadas:
             mult *= mult_vara
         ajustados.append((raridade, max(peso * mult, 0)))
