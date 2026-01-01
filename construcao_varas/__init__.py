@@ -234,7 +234,7 @@ def _construir_projeto(projeto):
 
 def menu_construcao_varas():
     if estado.nivel < 5:
-        print("\nA bancada de construção é desbloqueada no nível 5.")
+        print("\nA forja é desbloqueada no nível 5.")
         input("Pressione ENTER para continuar.")
         return
 
@@ -244,21 +244,29 @@ def menu_construcao_varas():
     while True:
         titulo = (
             f"{aleatoria(FALAS_CONSTRUCAO)}\n\n"
-            "🛠️ Bancada de Construção de Varas\n"
+            "⚒️ Forja de Varas\n"
             f"💰 Dinheiro: ${estado.dinheiro:.2f}\n"
             f"⭐ Nível: {estado.nivel} | Missões concluídas: {estado.missoes_concluidas}\n"
         )
 
         linhas = []
+        opcoes_projetos = []
         for i, projeto in enumerate(PROJETOS, start=1):
             pronto, _, req = _avaliar_projeto(projeto)
+            bloqueado_por_nivel = estado.nivel < req["nivel_minimo"]
             status = "Pronto" if pronto else "Pendências"
             if projeto["vara"] in estado.varas_possuidas:
                 status = "Já construída"
-            linhas.append(f"{i}. {projeto['nome']} ({status})")
-            linhas.append(f"   Resultado: {projeto['vara']} - {projeto['descricao']}")
-            linhas.append(f"   { _formatar_requisitos(req) }")
+            if bloqueado_por_nivel:
+                linhas.append(f"{i}. ??? (Desbloqueia no nível {req['nivel_minimo']})")
+                linhas.append("   Resultado: ???")
+                linhas.append("   ???")
+            else:
+                linhas.append(f"{i}. {projeto['nome']} ({status})")
+                linhas.append(f"   Resultado: {projeto['vara']} - {projeto['descricao']}")
+                linhas.append(f"   { _formatar_requisitos(req) }")
             linhas.append("")
+            opcoes_projetos.append((projeto, bloqueado_por_nivel, req["nivel_minimo"]))
 
         escolha, _ = mostrar_lista_paginada(linhas, titulo=titulo, itens_por_pagina=10, prompt="> ")
         if escolha == "0":
@@ -268,4 +276,9 @@ def menu_construcao_varas():
 
         escolha_int = int(escolha)
         if 1 <= escolha_int <= len(PROJETOS):
-            _construir_projeto(PROJETOS[escolha_int - 1])
+            projeto, bloqueado_por_nivel, nivel_minimo = opcoes_projetos[escolha_int - 1]
+            if bloqueado_por_nivel:
+                print(f"\n❌ ??? - atinja o nível {nivel_minimo} para revelar este projeto.")
+                input("Pressione ENTER para continuar.")
+                continue
+            _construir_projeto(projeto)
