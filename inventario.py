@@ -124,6 +124,8 @@ def mercado_varas():
 
 
 def _pode_exibir_vara(nome, dados):
+    if dados.get("somente_construcao") and nome not in estado.varas_possuidas:
+        return False
     if nome == "Serenidade" and not estado.serenidade_desbloqueada and nome not in estado.varas_possuidas:
         return False
     return nome in estado.varas_possuidas or estado.missoes_concluidas >= dados.get("missoes_minimas", 0)

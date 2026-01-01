@@ -44,6 +44,13 @@ FALAS_MENU = [
     "A maré trouxe conchas estranhas para a praia hoje.",
 ]
 
+FALAS_CONSTRUCAO = [
+    "O som de metal batendo ecoa pela doca.",
+    "Ferramentas e peixes sacrificados deixam um aroma metálico no ar.",
+    "A bancada vibra, pedindo novas oferendas raras.",
+    "Lendas dizem que boas varas nascem de sacrifícios improváveis.",
+]
+
 FALAS_VARA_REFORCADA = [
     "Talvez seja hora de investir em uma vara que aguente mais de {peso_min}kg.",
     "Sua vara range... procure algo que passe dos {peso_min}kg ou você só vai assistir os gigantes irem embora.",
