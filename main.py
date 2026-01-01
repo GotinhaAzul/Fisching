@@ -43,6 +43,12 @@ def menu():
         print("6. Missões")
         print("7. Salvar jogo")
         proximo_indice = 8
+        if estado.nivel >= 5:
+            print(f"{proximo_indice}. Construir varas")
+            indice_construcao = str(proximo_indice)
+            proximo_indice += 1
+        else:
+            indice_construcao = None
         if estado.desbloqueou_cacadas:
             print(f"{proximo_indice}. Caçadas APEX")
             indice_cacadas = str(proximo_indice)
@@ -74,6 +80,9 @@ def menu():
         elif op == "7":
             salvar_jogo()
             input("💾 Jogo salvo! Pressione ENTER para continuar")
+        elif indice_construcao and op == indice_construcao:
+            from construcao_varas import menu_construcao_varas
+            menu_construcao_varas()
         elif indice_cacadas and op == indice_cacadas:
             from cacadas import menu_cacadas
             menu_cacadas()
