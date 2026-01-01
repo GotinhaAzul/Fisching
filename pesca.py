@@ -1,3 +1,4 @@
+import os
 import random
 import sys
 import threading
@@ -49,6 +50,84 @@ CAPTURAS_RAPIDAS_LIMITE = 3
 INTERVALO_CAPTURA_RAPIDA = 2.5
 TEMPO_RECUPERACAO_LINHA = 5
 BARRA_TEMPO_TAMANHO = 20
+
+
+def _ler_tecla_disponivel():
+    """Retorna uma tecla pressionada sem exigir ENTER, caso haja."""
+    try:
+        if os.name == "nt":
+            import msvcrt  # type: ignore
+
+            if msvcrt.kbhit():
+                return msvcrt.getwch()
+        else:
+            import select
+
+            pronto, _, _ = select.select([sys.stdin], [], [], 0)
+            if pronto:
+                return sys.stdin.read(1)
+    except Exception:
+        return None
+    return None
+
+
+def _ler_combo_sem_enter(tempo_limite: float, quantidade: int):
+    """
+    Captura `quantidade` de teclas sem exigir ENTER, exibindo barra de tempo.
+    Retorna (teclas, tempo_decorrido) ou (None, tempo_decorrido) se o tempo esgotar.
+    """
+    teclas = []
+    inicio = time.time()
+    completou = False
+
+    fd = None
+    configuracao_antiga = None
+    if os.name != "nt" and sys.stdin.isatty():
+        import termios
+        import tty
+
+        fd = sys.stdin.fileno()
+        configuracao_antiga = termios.tcgetattr(fd)
+        tty.setcbreak(fd)
+
+    try:
+        while True:
+            decorrido = time.time() - inicio
+            if decorrido >= tempo_limite:
+                sys.stdout.write("\r⏳ Tempo esgotou!                \n")
+                sys.stdout.flush()
+                break
+
+            progresso = min(1.0, decorrido / tempo_limite)
+            preenchido = int(BARRA_TEMPO_TAMANHO * progresso)
+            barra = "█" * preenchido + "░" * (BARRA_TEMPO_TAMANHO - preenchido)
+            restante = max(0.0, tempo_limite - decorrido)
+            sys.stdout.write(f"\r⏳ Tempo: [{barra}] {restante:.1f}s")
+            sys.stdout.flush()
+
+            tecla = _ler_tecla_disponivel()
+            if tecla:
+                tecla = tecla.lower()
+                if tecla in ("\n", "\r"):
+                    continue
+                teclas.append(tecla)
+                if len(teclas) == quantidade:
+                    completou = True
+                    break
+
+            time.sleep(0.02)
+    finally:
+        if configuracao_antiga is not None and fd is not None:
+            import termios
+
+            termios.tcsetattr(fd, termios.TCSADRAIN, configuracao_antiga)
+
+    sys.stdout.write("\r" + " " * 60 + "\r")
+    sys.stdout.flush()
+
+    if completou:
+        return teclas, time.time() - inicio
+    return None, time.time() - inicio
 
 def _ler_input_com_barra(tempo_limite: float):
     """
@@ -109,17 +188,25 @@ def minigame_reacao(vara, raridade):
     print(" → ".join(combo).upper())
     print(f"⏳ Você tem {tempo:.1f}s para reagir!")
 
-    inicio = time.time()
-    entrada_raw = _ler_input_com_barra(tempo)
-    reacao = time.time() - inicio
+    entrada_combo, reacao = _ler_combo_sem_enter(tempo, len(combo))
+    entrada_raw = None
 
-    if entrada_raw is None:
+    # Fallback para ambientes sem suporte a leitura sem ENTER
+    if entrada_combo is None:
+        inicio = time.time()
+        entrada_raw = _ler_input_com_barra(tempo)
+        reacao = time.time() - inicio
+
+    if entrada_combo is None and entrada_raw is None:
         return False
 
-    # Permite digitar com ou sem espaços entre as letras (ex.: "wasd" ou "w a s d")
-    entrada_processada = (
-        list(entrada_raw) if " " not in entrada_raw else entrada_raw.split()
-    )
+    if entrada_combo is None:
+        # Permite digitar com ou sem espaços entre as letras (ex.: "wasd" ou "w a s d")
+        entrada_processada = (
+            list(entrada_raw) if " " not in entrada_raw else entrada_raw.split()
+        )
+    else:
+        entrada_processada = entrada_combo
 
     return reacao <= tempo and entrada_processada == combo
 
