@@ -76,11 +76,12 @@ def _ler_tecla_disponivel():
 def _ler_combo_sem_enter(tempo_limite: float, quantidade: int):
     """
     Captura `quantidade` de teclas sem exigir ENTER, exibindo barra de tempo.
-    Retorna (teclas, tempo_decorrido) ou (None, tempo_decorrido) se o tempo esgotar.
+    Retorna (teclas, tempo_decorrido, expirou) ou (None, tempo_decorrido, expirou).
     """
     teclas = []
     inicio = time.time()
     completou = False
+    expirou = False
 
     fd = None
     configuracao_antiga = None
@@ -96,6 +97,7 @@ def _ler_combo_sem_enter(tempo_limite: float, quantidade: int):
         while True:
             decorrido = time.time() - inicio
             if decorrido >= tempo_limite:
+                expirou = True
                 sys.stdout.write("\r⏳ Tempo esgotou!                \n")
                 sys.stdout.flush()
                 break
@@ -128,8 +130,8 @@ def _ler_combo_sem_enter(tempo_limite: float, quantidade: int):
     sys.stdout.flush()
 
     if completou:
-        return teclas, time.time() - inicio
-    return None, time.time() - inicio
+        return teclas, time.time() - inicio, expirou
+    return None, time.time() - inicio, expirou
 
 def _ler_input_com_barra(tempo_limite: float):
     """
@@ -199,14 +201,16 @@ def minigame_reacao(vara, raridade):
     print(" → ".join(combo).upper())
     print(f"⏳ Você tem {tempo:.1f}s para reagir!")
 
-    entrada_combo, reacao = _ler_combo_sem_enter(tempo, len(combo))
+    entrada_combo, reacao, expirou = _ler_combo_sem_enter(tempo, len(combo))
     entrada_raw = None
 
     # Fallback para ambientes sem suporte a leitura sem ENTER
-    if entrada_combo is None:
+    if entrada_combo is None and not expirou:
         inicio = time.time()
         entrada_raw = _ler_input_com_barra(tempo)
         reacao = time.time() - inicio
+    elif expirou:
+        return False
 
     if entrada_combo is None and entrada_raw is None:
         return False
