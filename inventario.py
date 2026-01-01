@@ -86,16 +86,22 @@ def mercado_varas():
         limpar_console()
         titulo = aleatoria(FALAS_MERCADO) + "\n\n🛒 Comprar Varas\n" + f"💰 Dinheiro: ${estado.dinheiro:.2f}\n"
 
-        varas_disponiveis = [
-            (nome, dados)
-            for nome, dados in VARAS.items()
-            if _pode_exibir_vara(nome, dados)
-        ]
+        varas_disponiveis = sorted(
+            [
+                (nome, dados)
+                for nome, dados in VARAS.items()
+                if _pode_exibir_vara(nome, dados)
+            ],
+            key=lambda item: item[1]["preco"],
+        )
 
-        linhas = [
-            f"{i}. {nome} - ${dados['preco']} - {dados['descricao']}"
-            for i, (nome, dados) in enumerate(varas_disponiveis, 1)
-        ]
+        linhas = []
+        for i, (nome, dados) in enumerate(varas_disponiveis, 1):
+            preco = dados["preco"]
+            stats = _descrever_vara(dados)
+            linhas.append(f"{i}. {nome} - ${preco} | {dados['descricao']}")
+            linhas.append(f"   {stats}")
+
         escolha, pagina = mostrar_lista_paginada(linhas, titulo=titulo, itens_por_pagina=10, prompt="> ")
 
         if escolha == "0":
@@ -130,6 +136,17 @@ def _pode_exibir_vara(nome, dados):
         return False
     return nome in estado.varas_possuidas or estado.missoes_concluidas >= dados.get("missoes_minimas", 0)
 
+def _descrever_vara(dados):
+    bonus = []
+    if dados.get("bonus_raridade", 0):
+        bonus.append(f"+{dados['bonus_raridade']*100:.0f}% raridade")
+    if dados.get("bonus_mutacao", 0):
+        bonus.append(f"+{dados['bonus_mutacao']*100:.0f}% mutação")
+    if dados.get("bonus_reacao", 0):
+        bonus.append(f"+{dados['bonus_reacao']*100:.0f}% reação")
+    bonus_txt = " | ".join(bonus) if bonus else "Sem bônus"
+    return f"Peso máx: {dados['peso_max']}kg · {bonus_txt}"
+
 def trocar_vara():
     while True:
         print("🎒 Trocar de Vara\n")
@@ -137,7 +154,7 @@ def trocar_vara():
         for i, nome in enumerate(estado.varas_possuidas, 1):
             dados = VARAS[nome]
             equipada = " (Equipada)" if nome == estado.vara_atual else ""
-            print(f"{i}. {nome}{equipada} - {dados['descricao']}")
+            print(f"{i}. {nome}{equipada} - {dados['descricao']} ({_descrever_vara(dados)})")
         print("0. Voltar")
 
         escolha = input("> ")
