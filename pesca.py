@@ -136,39 +136,48 @@ def _ler_input_com_barra(tempo_limite: float):
     Lê o input do usuário mostrando uma barra de tempo que preenche até o limite.
     Retorna a string digitada ou None caso o tempo estoure antes de receber entrada.
     """
-    resultado = {"texto": None}
-
-    def _ler():
-        try:
-            resultado["texto"] = input(">>> ").lower().strip()
-        except EOFError:
-            resultado["texto"] = ""
-
-    thread_input = threading.Thread(target=_ler, daemon=True)
-    thread_input.start()
-
     inicio = time.time()
-    while thread_input.is_alive():
+    caracteres = []
+
+    while True:
         decorrido = time.time() - inicio
         if decorrido >= tempo_limite:
-            break
+            sys.stdout.write("\r⏳ Tempo esgotou!                \n")
+            sys.stdout.flush()
+            return None
+
         progresso = min(1.0, decorrido / tempo_limite)
         preenchido = int(BARRA_TEMPO_TAMANHO * progresso)
         barra = "█" * preenchido + "░" * (BARRA_TEMPO_TAMANHO - preenchido)
         restante = max(0.0, tempo_limite - decorrido)
         sys.stdout.write(f"\r⏳ Tempo: [{barra}] {restante:.1f}s")
         sys.stdout.flush()
-        time.sleep(0.05)
 
-    if thread_input.is_alive():
-        sys.stdout.write("\r⏳ Tempo esgotou!                \n")
-        sys.stdout.flush()
-        return None
+        if os.name == "nt":
+            import msvcrt  # type: ignore
 
-    thread_input.join()
-    sys.stdout.write("\r" + " " * 40 + "\r")
-    sys.stdout.flush()
-    return resultado["texto"]
+            while msvcrt.kbhit():
+                tecla = msvcrt.getwch()
+                if tecla in ("\r", "\n"):
+                    sys.stdout.write("\r" + " " * 40 + "\r")
+                    sys.stdout.flush()
+                    return "".join(caracteres).lower().strip()
+                caracteres.append(tecla)
+        else:
+            import select
+
+            pronto, _, _ = select.select([sys.stdin], [], [], 0.05)
+            if pronto:
+                tecla = sys.stdin.read(1)
+                if tecla in ("\n", "\r"):
+                    sys.stdout.write("\r" + " " * 40 + "\r")
+                    sys.stdout.flush()
+                    return "".join(caracteres).lower().strip()
+                if tecla == "":
+                    return "".join(caracteres).lower().strip()
+                caracteres.append(tecla)
+
+        time.sleep(0.02)
 
 def registrar_pescado_por_raridade(raridade):
     atual = estado.peixes_pescados_por_raridade.get(raridade, 0)
