@@ -46,8 +46,10 @@ RARIDADE_XP_MULT = {
     "Secreto": 15,
 }
 MEDIA_MULT_MUTACAO = sum(MUTACOES.values()) / len(MUTACOES)
-CAPTURAS_RAPIDAS_LIMITE = 3
-INTERVALO_CAPTURA_RAPIDA = 2.5
+# Capturas rápidas servem para impedir spam quase instantâneo.
+# Limites mais brandos evitam punição para um ritmo normal de pesca.
+CAPTURAS_RAPIDAS_LIMITE = 5
+INTERVALO_CAPTURA_RAPIDA = 1.5
 TEMPO_RECUPERACAO_LINHA = 5
 BARRA_TEMPO_TAMANHO = 20
 
