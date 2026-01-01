@@ -1,4 +1,6 @@
 import random
+import sys
+import threading
 import time
 import estado
 from pools import POOLS
@@ -43,6 +45,49 @@ RARIDADE_XP_MULT = {
     "Secreto": 15,
 }
 MEDIA_MULT_MUTACAO = sum(MUTACOES.values()) / len(MUTACOES)
+CAPTURAS_RAPIDAS_LIMITE = 3
+INTERVALO_CAPTURA_RAPIDA = 2.5
+TEMPO_RECUPERACAO_LINHA = 5
+BARRA_TEMPO_TAMANHO = 20
+
+def _ler_input_com_barra(tempo_limite: float):
+    """
+    Lê o input do usuário mostrando uma barra de tempo que preenche até o limite.
+    Retorna a string digitada ou None caso o tempo estoure antes de receber entrada.
+    """
+    resultado = {"texto": None}
+
+    def _ler():
+        try:
+            resultado["texto"] = input(">>> ").lower().strip()
+        except EOFError:
+            resultado["texto"] = ""
+
+    thread_input = threading.Thread(target=_ler, daemon=True)
+    thread_input.start()
+
+    inicio = time.time()
+    while thread_input.is_alive():
+        decorrido = time.time() - inicio
+        if decorrido >= tempo_limite:
+            break
+        progresso = min(1.0, decorrido / tempo_limite)
+        preenchido = int(BARRA_TEMPO_TAMANHO * progresso)
+        barra = "█" * preenchido + "░" * (BARRA_TEMPO_TAMANHO - preenchido)
+        restante = max(0.0, tempo_limite - decorrido)
+        sys.stdout.write(f"\r⏳ Tempo: [{barra}] {restante:.1f}s")
+        sys.stdout.flush()
+        time.sleep(0.05)
+
+    if thread_input.is_alive():
+        sys.stdout.write("\r⏳ Tempo esgotou!                \n")
+        sys.stdout.flush()
+        return None
+
+    thread_input.join()
+    sys.stdout.write("\r" + " " * 40 + "\r")
+    sys.stdout.flush()
+    return resultado["texto"]
 
 def registrar_pescado_por_raridade(raridade):
     atual = estado.peixes_pescados_por_raridade.get(raridade, 0)
@@ -62,10 +107,14 @@ def minigame_reacao(vara, raridade):
     print("\n🐟 O peixe mordeu!")
     print("⚡ Digite:")
     print(" → ".join(combo).upper())
+    print(f"⏳ Você tem {tempo:.1f}s para reagir!")
 
     inicio = time.time()
-    entrada_raw = input(">>> ").lower().strip()
+    entrada_raw = _ler_input_com_barra(tempo)
     reacao = time.time() - inicio
+
+    if entrada_raw is None:
+        return False
 
     # Permite digitar com ou sem espaços entre as letras (ex.: "wasd" ou "w a s d")
     entrada_processada = (
@@ -141,8 +190,22 @@ def pescar():
 
     evento = sortear_evento()
     ultima_troca_pool = time.time()
+    ultima_captura = None
+    capturas_rapidas_consecutivas = 0
+    linha_quebrada_ate = 0
 
     while True:
+        agora = time.time()
+        if agora < linha_quebrada_ate:
+            pausa = linha_quebrada_ate - agora
+            limpar_console()
+            print("\n🪝 Sua linha quebrou de tanto esforço!")
+            print(f"⏳ Espere {pausa:.1f}s para voltar a pescar.")
+            time.sleep(pausa)
+            ultima_captura = None
+            capturas_rapidas_consecutivas = 0
+            continue
+
         limpar_console()
         exibir_contexto(pool, evento)
         print(aleatoria(FALAS_PESCA) + "\n")
@@ -270,6 +333,21 @@ def pescar():
             print("\n🗝️  Você desbloqueou as Caçadas APEX no menu!")
         if mensagem_poco:
             print(mensagem_poco)
+
+        fim_captura = time.time()
+        if ultima_captura is not None and (fim_captura - ultima_captura) < INTERVALO_CAPTURA_RAPIDA:
+            capturas_rapidas_consecutivas += 1
+        else:
+            capturas_rapidas_consecutivas = 0
+        ultima_captura = fim_captura
+
+        if capturas_rapidas_consecutivas >= CAPTURAS_RAPIDAS_LIMITE:
+            linha_quebrada_ate = fim_captura + TEMPO_RECUPERACAO_LINHA
+            capturas_rapidas_consecutivas = 0
+            ultima_captura = None
+            print("\n🪝 Você puxou rápido demais e a linha quebrou!")
+            print(f"🧵 Faça uma pausa de {TEMPO_RECUPERACAO_LINHA:.0f}s para reforçar o equipamento.")
+            time.sleep(1.5)
 
         print("\n[P] Pescar novamente na mesma pool")
         print("[M] Mudar de local")
