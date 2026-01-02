@@ -7,7 +7,7 @@ FALAS_MERCADO = [
     "Os anciões da ilha fugiram a muito tempo...",
     "A água do lago está ótima para pesca hoje!",
     "As melhores mercadorias chegam cedo, aproveite!",
-    "Ouvi dizer que um pescador foi levado as profundezas ontem...",
+    "Ouvi dizer que um habitante foi levado as profundezas ontem...",
 ]
 
 FALAS_POOLS = [
@@ -92,5 +92,6 @@ def aleatoria(lista):
 
 def aleatoria_formatada(lista, **kwargs):
     return random.choice(lista).format(**kwargs)
+
 
 
