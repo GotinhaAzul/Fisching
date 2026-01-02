@@ -312,6 +312,10 @@ def _formatar_requisitos_missao(requisitos):
     for mut, qtd in mutacoes.items():
         linhas.append(f"- Sacrificar {qtd} peixe(s) com mutação {mut}.")
 
+    pools_requeridas = requisitos.get("pools_desbloqueadas") or []
+    for pool in pools_requeridas:
+        linhas.append(f"- Desbloquear a pool {pool}.")
+
     return linhas or ["Sem requisitos adicionais."]
 
 
@@ -353,6 +357,11 @@ def _checar_requisitos_faccao(requisitos):
         encontrados = sum(1 for item in estado.inventario if item.get("mutacao") == mut)
         if encontrados < qtd:
             faltas.append(f"Sacrificar {qtd} peixe(s) com mutação {mut} (inventário: {encontrados}).")
+
+    pools_requeridas = requisitos.get("pools_desbloqueadas") or []
+    for pool in pools_requeridas:
+        if pool not in estado.pools_desbloqueadas:
+            faltas.append(f"Desbloquear a pool {pool}.")
 
     return faltas
 
