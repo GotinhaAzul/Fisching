@@ -26,8 +26,15 @@ from falas import (
     FALAS_VARA_REFORCADA,
     MENSAGENS_TROFEU_LENDARIO,
 )
-from eventos import sortear_evento, ajustar_pesos_raridade, EVENTO_PADRAO
-from dados import MUTACOES, RARIDADE_INTERVALO_PESO, CHANCE_PEIXE_SECRETO, PEIXES_SECRETOS
+from eventos import (
+    EVENTO_PADRAO,
+    ajustar_pesos_raridade,
+    media_multiplicador_mutacoes,
+    mutacoes_disponiveis,
+    peixes_exclusivos_para_pool,
+    sortear_evento,
+)
+from dados import RARIDADE_INTERVALO_PESO, CHANCE_PEIXE_SECRETO, PEIXES_SECRETOS
 
 TECLAS = ["w", "a", "s", "d"]
 POOL_VAZIO_NOME = "O Vazio"
@@ -55,7 +62,6 @@ RARIDADE_XP_MULT = {
     "Apex": 12,
     "Secreto": 15,
 }
-MEDIA_MULT_MUTACAO = sum(MUTACOES.values()) / len(MUTACOES)
 # Capturas rápidas servem para impedir spam quase instantâneo.
 # Limites mais brandos evitam punição para um ritmo normal de pesca.
 CAPTURAS_RAPIDAS_LIMITE = 5
@@ -405,11 +411,15 @@ def pescar():
                     weights=[r[1] for r in raridades_ajustadas]
                 )[0]
 
-                peixe = random.choice(pool["peixes"][raridade])
+                peixes_disponiveis = pool["peixes"][raridade] + peixes_exclusivos_para_pool(
+                    evento, pool["nome"], raridade
+                )
+                peixe = random.choice(peixes_disponiveis)
 
         mutacao = None
         mult_mut = 1.0
         mutacao_chance = 0.0
+        mutacoes_evento = mutacoes_disponiveis(evento)
         if not vazio_pool:
             mutacao_chance = (
                 0.15
@@ -418,8 +428,8 @@ def pescar():
                 + buffs_ativos.get("bonus_mutacao", 0.0)
             )
         if mutacao_chance and random.random() < mutacao_chance:
-            mutacao = random.choice(list(MUTACOES.keys()))
-            mult_mut = MUTACOES[mutacao]
+            mutacao = random.choice(list(mutacoes_evento.keys()))
+            mult_mut = mutacoes_evento[mutacao]
 
         peso_min, peso_max = RARIDADE_INTERVALO_PESO.get(raridade, (1, 5))
         if vara["peso_max"] < peso_min:
@@ -671,7 +681,8 @@ def calcular_expectativas(pool, evento, vara, buffs=None):
     chance_mutacao = 0.0
     if pool.get("permite_mutacao", True):
         chance_mutacao = max(0.0, min(1.0, chance_mutacao_base))
-    mult_mutacao_esperado = 1 + chance_mutacao * (MEDIA_MULT_MUTACAO - 1)
+    mult_mutacao_base = media_multiplicador_mutacoes(evento)
+    mult_mutacao_esperado = 1 + chance_mutacao * (mult_mutacao_base - 1)
 
     valor_esperado = 0.0
     xp_esperado = 0.0

@@ -1,6 +1,6 @@
 import random
 
-from dados import RARIDADE_PESO_AJUSTE_GLOBAL
+from dados import MUTACOES, RARIDADE_PESO_AJUSTE_GLOBAL
 
 # Cada evento dá um tempero diferente às sessões de pesca:
 # - bonus_raridade: multiplica o peso de determinadas raridades ao sorteá-las
@@ -34,6 +34,40 @@ EVENTOS = [
         "bonus_raridade": {"Incomum": 1.05, "Raro": 1.15},
         "xp_multiplicador": 1.2,
     },
+    {
+        "nome": "Maré Fosforescente",
+        "descricao": "Algas bioluminescentes cobrem a superfície. Criaturas que brilham no escuro se aproximam da luz.",
+        "bonus_raridade": {"Raro": 1.1, "Lendário": 1.15},
+        "bonus_mutacao": 0.05,
+        "bonus_peso": 1.05,
+        "peixes_exclusivos": {
+            "Comum": [],
+            "Incomum": ["Tubarão Neon Anão", "Paru-Raio", "Truta Bioluminescente"],
+            "Raro": ["Enguia Fantasma Azul", "Carpa das Estrelas Submersas"],
+            "Lendário": ["Leviatã Fosforescente", "Oráculo Prismático"],
+        },
+        "mutacoes_exclusivas": {
+            "Bioluminescente": 1.45,
+            "Coralizado": 1.35,
+        },
+    },
+    {
+        "nome": "Chuva de Meteoros",
+        "descricao": "Fragmentos celestes atravessam o céu e alteram as marés. Peixes raros e mutações brilhantes surgem das rachaduras.",
+        "bonus_raridade": {"Incomum": 1.05, "Raro": 1.1, "Lendário": 1.1},
+        "bonus_mutacao": 0.07,
+        "bonus_valor": 1.1,
+        "peixes_exclusivos": {
+            "Incomum": ["Truta Cadente", "Lambari Cadente"],
+            "Raro": ["Bagre Meteoro", "Pacu Meteórico", "Salmão de Cauda Cometa"],
+            "Lendário": ["Carpa Estelar"],
+            "Secreto": ["Serafim Celeste"],
+        },
+        "mutacoes_exclusivas": {
+            "Incandescente": 1.35,
+            "Estilhaçado": 1.5,
+        },
+    },
 ]
 
 EVENTO_PADRAO = {
@@ -48,6 +82,41 @@ def sortear_evento(prob_evento=0.35):
     if random.random() < prob_evento:
         return random.choice(EVENTOS)
     return EVENTO_PADRAO
+
+
+def peixes_exclusivos_para_pool(evento, pool_nome, raridade):
+    """Retorna a lista de peixes exclusivos do evento para a raridade informada."""
+    peixes_evento = evento.get("peixes_exclusivos", {})
+    if not peixes_evento:
+        return []
+    return peixes_evento.get(raridade, [])
+
+
+def mutacoes_disponiveis(evento):
+    """Combina mutações padrão com mutações exclusivas do evento atual."""
+    mutacoes = MUTACOES.copy()
+    mutacoes.update(evento.get("mutacoes_exclusivas", {}))
+    return mutacoes
+
+
+def media_multiplicador_mutacoes(evento):
+    mutacoes = mutacoes_disponiveis(evento)
+    if not mutacoes:
+        return 1.0
+    return sum(mutacoes.values()) / len(mutacoes)
+
+
+def listar_peixes_exclusivos():
+    """Gera dicionários com peixes exclusivos para alimentar o bestiário e dicas."""
+    for evento in EVENTOS:
+        for raridade, peixes in evento.get("peixes_exclusivos", {}).items():
+            for peixe in peixes:
+                yield {
+                    "evento": evento["nome"],
+                    "pool": "Qualquer local",
+                    "raridade": raridade,
+                    "nome": peixe,
+                }
 
 
 def ajustar_pesos_raridade(raridades, bonus_raridade=None, bonus_raridade_vara=0.0):
