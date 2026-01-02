@@ -436,6 +436,9 @@ def _resumo_recompensa(recompensa):
         return ["Sem recompensas registradas."]
 
     linhas = []
+    itens = recompensa.get("itens") or []
+    if itens:
+        linhas.append("Itens: " + ", ".join(item.get("nome", "Item misterioso") for item in itens))
     if recompensa.get("dinheiro"):
         linhas.append(f"+${recompensa['dinheiro']:.2f}")
     if recompensa.get("xp"):
@@ -460,6 +463,7 @@ def _aplicar_recompensas_faccao(faccao, missao):
     xp = recompensa.get("xp", 0)
     buff = recompensa.get("buff_permanente")
     set_flag = recompensa.get("set_flag")
+    itens = recompensa.get("itens") or []
 
     if dinheiro:
         estado.dinheiro += dinheiro
@@ -481,6 +485,10 @@ def _aplicar_recompensas_faccao(faccao, missao):
                 buff_instancia.get("efeitos")
             )
             print(f"✨ Buff permanente obtido: {buff_instancia.get('nome')} ({efeito_txt})")
+
+    for item in itens:
+        estado.inventario.append(item)
+        print(f"🎁 Item obtido: {item.get('nome', 'Item especial')} foi guardado no inventário.")
 
     flags = []
     if set_flag:

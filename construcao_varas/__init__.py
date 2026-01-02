@@ -92,6 +92,8 @@ def _normalizar_requisitos(requisitos):
         "pescados_raridade": requisitos.get("pescados_raridade", {}),
         "sacrificios": _normalizar_sacrificios(requisitos.get("sacrificios", {})),
         "dinheiro": requisitos.get("dinheiro", 0),
+        "itens": requisitos.get("itens", {}),
+        "flags": requisitos.get("flags", []),
     }
 
 
@@ -129,6 +131,24 @@ def _avaliar_sacrificios(sacrificios):
     return tem_tudo, faltantes, indices_consumo
 
 
+def _avaliar_itens_requeridos(itens_requeridos, ignorar_indices=None):
+    ignorar_indices = set(ignorar_indices or [])
+    faltantes = itens_requeridos.copy()
+    indices_consumo = []
+
+    for idx, item in enumerate(estado.inventario):
+        if idx in ignorar_indices:
+            continue
+        nome = item.get("nome")
+        if nome in faltantes and faltantes[nome] > 0:
+            faltantes[nome] -= 1
+            indices_consumo.append(idx)
+
+    faltantes_limpos = {nome: qtd for nome, qtd in faltantes.items() if qtd > 0}
+    tem_tudo = not faltantes_limpos
+    return tem_tudo, faltantes_limpos, indices_consumo
+
+
 def _avaliar_projeto(projeto):
     req = _normalizar_requisitos(projeto["requisitos"])
     faltantes = {
@@ -137,6 +157,8 @@ def _avaliar_projeto(projeto):
         "pescados": {},
         "sacrificios": {},
         "dinheiro": 0,
+        "itens": {},
+        "flags": [],
     }
 
     for raridade, qtd in req["pescados_raridade"].items():
@@ -148,6 +170,14 @@ def _avaliar_projeto(projeto):
     if not tem_sacrificios:
         faltantes["sacrificios"] = faltantes_sac
 
+    tem_itens, faltantes_itens, _ = _avaliar_itens_requeridos(req["itens"])
+    if not tem_itens:
+        faltantes["itens"] = faltantes_itens
+
+    for flag in req["flags"]:
+        if not getattr(estado, flag, False):
+            faltantes["flags"].append(flag)
+
     if estado.dinheiro < req["dinheiro"]:
         faltantes["dinheiro"] = round(req["dinheiro"] - estado.dinheiro, 2)
 
@@ -156,6 +186,8 @@ def _avaliar_projeto(projeto):
         and faltantes["missoes"] == 0
         and not faltantes["pescados"]
         and not faltantes["sacrificios"]
+        and not faltantes["itens"]
+        and not faltantes["flags"]
         and faltantes["dinheiro"] == 0
     )
     return pronto, faltantes, req
@@ -180,6 +212,10 @@ def _formatar_requisitos(req):
         if req["sacrificios"]["mutacoes"]:
             sac_partes.append(", ".join(f"{qtd}x mutação {mut}" for mut, qtd in req["sacrificios"]["mutacoes"].items()))
         partes.append(f"Sacrifícios: {', '.join(sac_partes)}")
+    if req["itens"]:
+        partes.append("Itens: " + ", ".join(f"{qtd}x {nome}" for nome, qtd in req["itens"].items()))
+    if req["flags"]:
+        partes.append("Ativos: " + ", ".join(req["flags"]))
     if req["dinheiro"] > 0:
         partes.append(f"Custo: ${req['dinheiro']:.2f}")
     return " | ".join(partes)
@@ -206,6 +242,13 @@ def _formatar_faltantes(faltantes):
                 "- Sacrifícios por mutação: "
                 + ", ".join(f"{qtd}x {mut}" for mut, qtd in sac["mutacoes"].items())
             )
+    if faltantes.get("itens"):
+        partes.append(
+            "- Itens faltantes: "
+            + ", ".join(f"{qtd}x {nome}" for nome, qtd in faltantes["itens"].items())
+        )
+    if faltantes.get("flags"):
+        partes.append("- Ative: " + ", ".join(faltantes["flags"]))
     if faltantes["dinheiro"] > 0:
         partes.append(f"- Dinheiro faltante: ${faltantes['dinheiro']:.2f}.")
     return "\n".join(partes) if partes else "Tudo pronto!"
@@ -234,8 +277,16 @@ def _construir_projeto(projeto):
         input("\nPressione ENTER para continuar.")
         return
 
-    _, _, indices_consumo = _avaliar_sacrificios(req["sacrificios"])
-    _consumir_indices(indices_consumo)
+    tem_sacrificios, _, indices_consumo = _avaliar_sacrificios(req["sacrificios"])
+    tem_itens, _, indices_itens = _avaliar_itens_requeridos(req["itens"], ignorar_indices=indices_consumo)
+    if not tem_sacrificios or not tem_itens:
+        print("\nAlguns recursos sumiram antes da construção:\n")
+        pronto_atual, faltantes_atual, _ = _avaliar_projeto(projeto)
+        print(_formatar_faltantes(faltantes_atual))
+        input("\nPressione ENTER para continuar.")
+        return
+
+    _consumir_indices(indices_consumo + [i for i in indices_itens if i not in indices_consumo])
     estado.dinheiro -= req["dinheiro"]
 
     estado.varas_possuidas.append(projeto["vara"])
