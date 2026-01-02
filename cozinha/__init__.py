@@ -1,7 +1,9 @@
+import copy
 import importlib
 import os
 
 import estado
+from buffs import ativar_buff, efeitos_para_texto
 from utils import limpar_console, mostrar_lista_paginada
 
 # Estrutura de receitas:
@@ -40,6 +42,18 @@ def _carregar_receitas():
 _carregar_receitas()
 
 
+def _descricao_buff(receita):
+    buff = receita.get("buff") or {}
+    duracao = buff.get("duracao_pescas")
+    efeitos = buff.get("efeitos")
+    partes = []
+    if duracao:
+        partes.append(f"Duração: {duracao} pescas")
+    if efeitos:
+        partes.append(efeitos_para_texto(efeitos))
+    return " | ".join(partes) if partes else "Sem buff definido."
+
+
 def cozinhar():
     while True:
         titulo = (
@@ -55,6 +69,7 @@ def cozinhar():
                 f"{i}. {receita['nome']} - x{receita['multiplicador']:.2f} | {ingredientes}"
             )
             linhas.append(f"   {receita['descricao']}")
+            linhas.append(f"   🎁 Buff: {_descricao_buff(receita)}")
             linhas.append("")
             linhas.append("")
 
@@ -135,35 +150,49 @@ def cozinhar_receita(receita):
         estado.inventario.remove(peixe)
 
     while True:
-        print(f"\n🍽️ Você preparou '{receita['nome']}' usando: {', '.join(p['nome'] for p in selecionados)}.")
-        print(f"Valor do prato: ${ganho:.2f}")
-        print("1. Vender agora")
-        print("2. Guardar no inventário")
+        print(
+            f"\n🍽️ Você preparou '{receita['nome']}' usando: {', '.join(p['nome'] for p in selecionados)}."
+        )
+        print(f"Valor culinário: ${ganho:.2f}")
+        print("1. Guardar como prato (buff)")
+        print("2. Consumir agora")
         print("0. Cancelar")
         escolha = input("> ")
         if escolha == "1":
-            estado.dinheiro += ganho
-            print(f"\n💰 Venda concluída por ${ganho:.2f}!")
+            prato = gerar_prato(receita, ganho, selecionados)
+            estado.pratos.append(prato)
+            print("\n✅ Prato guardado na despensa.")
             input("Pressione ENTER para continuar.")
             break
         elif escolha == "2":
-            prato = {
-                "tipo": "prato",
-                "nome": receita["nome"],
-                "raridade": "Prato",
-                "kg": 0.0,
-                "mutacao": None,
-                "valor": ganho,
-                "ingredientes": [p["nome"] for p in selecionados],
-            }
-            estado.inventario.append(prato)
-            print("\n✅ Prato guardado no inventário.")
+            prato = gerar_prato(receita, ganho, selecionados)
+            buff = prato.get("buff")
+            if buff:
+                ativar_buff(buff, fonte=prato["nome"])
+                print("\n✨ Buff aplicado!")
+                print(efeitos_para_texto(buff.get("efeitos")))
+            else:
+                print("\nVocê saboreou o prato, mas ele não concede buffs.")
             input("Pressione ENTER para continuar.")
             break
         elif escolha == "0":
             print("\nAção cancelada. Os peixes já foram consumidos.")
             input("Pressione ENTER para continuar.")
             break
+
+
+def gerar_prato(receita, valor_base, ingredientes):
+    buff_def = copy.deepcopy(receita.get("buff"))
+    return {
+        "tipo": "prato",
+        "nome": receita["nome"],
+        "raridade": "Prato",
+        "kg": 0.0,
+        "mutacao": None,
+        "valor": valor_base,
+        "ingredientes": [p["nome"] for p in ingredientes],
+        "buff": buff_def,
+    }
 
 
 def selecionar_peixes_manualmente(ingredientes_necessarios):

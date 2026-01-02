@@ -11,6 +11,8 @@ def calcular_xp_por_nivel(nivel: int) -> int:
 
 dinheiro = 0
 inventario = []
+pratos = []
+buffs_ativos = []
 vara_atual = "Basica"
 varas_possuidas = ["Basica"]
 peixes_descobertos = set()

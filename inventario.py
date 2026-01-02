@@ -1,4 +1,5 @@
 import estado
+from buffs import ativar_buff, efeitos_para_texto, resumo_buffs_ativos
 from varas import VARAS
 from utils import formatar_contagem_por_raridade, limpar_console, mostrar_lista_paginada
 from falas import aleatoria, FALAS_MERCADO
@@ -9,24 +10,31 @@ def mostrar_inventario():
         print("🎒 Inventário\n")
         print(f"🎯 Vara atual: {estado.vara_atual}")
         print(f"🎣 Peixes: {len(estado.inventario)}")
+        print(f"🍲 Pratos: {len(estado.pratos)}")
         contagem = formatar_contagem_por_raridade(
             estado.peixes_pescados_por_raridade,
             mostrar_apex=estado.desbloqueou_cacadas,
             mostrar_secreto=estado.mostrar_secreto,
         )
         print(f"📊 Pescados por raridade: {contagem}")
+        print("\n✨ Buffs ativos:")
+        for linha in resumo_buffs_ativos():
+            print(f"- {linha}")
 
         pode_trocar = len(estado.varas_possuidas) > 1
 
         print("\nOpções:")
         print("1. Ver peixes")
-        print("2. Trocar de vara" + ("" if pode_trocar else " (necessário ter outra vara)"))
+        print("2. Ver pratos (consumir)")
+        print("3. Trocar de vara" + ("" if pode_trocar else " (necessário ter outra vara)"))
         print("0. Voltar")
         escolha = input("> ")
 
         if escolha == "1":
             listar_peixes()
         elif escolha == "2":
+            listar_pratos()
+        elif escolha == "3":
             limpar_console()
             if pode_trocar:
                 trocar_vara()
@@ -45,6 +53,44 @@ def listar_peixes():
 
     linhas = [formatar_item(i, peixe) for i, peixe in enumerate(estado.inventario, 1)]
     mostrar_lista_paginada(linhas, titulo="🐟 Seus Peixes", itens_por_pagina=12)
+
+
+def listar_pratos():
+    if not estado.pratos:
+        limpar_console()
+        print("Nenhum prato disponível.")
+        input("\nPressione ENTER para voltar.")
+        return
+
+    while True:
+        limpar_console()
+        print("🍲 Pratos preparados\n")
+        for i, prato in enumerate(estado.pratos, 1):
+            buff = prato.get("buff") or {}
+            duracao = buff.get("duracao_pescas")
+            duracao_txt = f"{duracao} pescas" if duracao is not None else "Duração desconhecida"
+            efeitos_txt = efeitos_para_texto(buff.get("efeitos"))
+            print(f"{i}. {prato['nome']} — {duracao_txt}")
+            print(f"   {efeitos_txt}")
+        print("0. Voltar")
+
+        escolha = input("\nEscolha um prato para consumir: ")
+        if not escolha.isdigit():
+            continue
+        escolha = int(escolha)
+        if escolha == 0:
+            break
+        if 1 <= escolha <= len(estado.pratos):
+            prato = estado.pratos.pop(escolha - 1)
+            buff = prato.get("buff")
+            if buff:
+                ativar_buff(buff, fonte=prato["nome"])
+                print(f"\n✨ Você consumiu {prato['nome']} e ganhou um buff!")
+                print(efeitos_para_texto(buff.get("efeitos")))
+            else:
+                print(f"\nVocê consumiu {prato['nome']}, mas ele não concede buff.")
+            input("\nPressione ENTER para continuar.")
+            break
 
 def vender_peixe_individual():
     if not estado.inventario:
