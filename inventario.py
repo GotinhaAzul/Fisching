@@ -208,6 +208,9 @@ def _descrever_vara(dados):
     bonus_reacao = dados.get("bonus_reacao", 0)
     if bonus_reacao:
         bonus.append(f"{bonus_reacao*100:+.0f}% reação")
+    bonus_xp = dados.get("bonus_xp", 0)
+    if bonus_xp:
+        bonus.append(f"{bonus_xp*100:+.0f}% XP")
     bonus_txt = " | ".join(bonus) if bonus else "Sem bônus"
     return f"Peso máx: {dados['peso_max']}kg · {bonus_txt}"
 

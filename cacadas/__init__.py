@@ -162,7 +162,8 @@ def _pescar_em_cacada(cacada):
         registrar_pescado_por_raridade(raridade)
         estado.peixes_descobertos.add(peixe)
 
-        xp_ganho = int(kg * RARIDADE_XP_MULT.get(raridade, 1) * cacada.get("xp_mult", 1))
+        bonus_xp_vara = 1 + vara.get("bonus_xp", 0.0)
+        xp_ganho = int(kg * RARIDADE_XP_MULT.get(raridade, 1) * cacada.get("xp_mult", 1) * bonus_xp_vara)
         xp_ganho = max(1, xp_ganho)
         estado.xp += xp_ganho
         print(f"\n🎣 Você pescou: {peixe} [{raridade}] - {kg:.2f}kg")
