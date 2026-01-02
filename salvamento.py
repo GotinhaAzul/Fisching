@@ -4,6 +4,7 @@ import shutil
 from pathlib import Path
 
 import estado
+from buffs import normalizar_buffs_salvos
 
 
 ARQUIVO_SAVE = "savegame.json"
@@ -46,6 +47,8 @@ def estado_para_dict():
         "versao": VERSAO_SAVE,
         "dinheiro": estado.dinheiro,
         "inventario": estado.inventario,
+        "pratos": estado.pratos,
+        "buffs_ativos": estado.buffs_ativos,
         "vara_atual": estado.vara_atual,
         "varas_possuidas": estado.varas_possuidas,
         "peixes_descobertos": list(estado.peixes_descobertos),
@@ -70,6 +73,19 @@ def estado_para_dict():
 def aplicar_estado(dados):
     estado.dinheiro = dados.get("dinheiro", estado.dinheiro)
     estado.inventario = dados.get("inventario", [])
+    pratos_salvos = dados.get("pratos", [])
+    pratos_migrados = [
+        item
+        for item in estado.inventario
+        if item.get("tipo") == "prato" or item.get("raridade") == "Prato"
+    ]
+    estado.inventario = [
+        item
+        for item in estado.inventario
+        if not (item.get("tipo") == "prato" or item.get("raridade") == "Prato")
+    ]
+    estado.pratos = pratos_salvos + pratos_migrados
+    estado.buffs_ativos = normalizar_buffs_salvos(dados.get("buffs_ativos", []))
     estado.vara_atual = dados.get("vara_atual", estado.vara_atual)
     estado.varas_possuidas = dados.get("varas_possuidas", estado.varas_possuidas)
     estado.peixes_descobertos = set(dados.get("peixes_descobertos", []))

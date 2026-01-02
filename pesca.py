@@ -4,6 +4,7 @@ import sys
 import threading
 import time
 import estado
+from buffs import consumir_uso, obter_bonus_ativos, resumo_buffs_ativos
 from pools import POOLS
 from pools.bloqueios import (
     descricao_pool_bloqueada,
@@ -186,14 +187,16 @@ def registrar_pescado_por_raridade(raridade):
     estado.peixes_pescados_por_raridade[raridade] = atual + 1
 
 def minigame_reacao(vara, raridade):
+    buffs = obter_bonus_ativos()
+    bonus_reacao = vara["bonus_reacao"] + buffs.get("bonus_reacao", 0.0)
     if raridade == "Apex":
-        tempo = 1.0 + vara["bonus_reacao"]
+        tempo = 1.0 + bonus_reacao
         combo = random.choices(TECLAS, k=5)
     elif raridade == "Lendário":
-        tempo = 1.2 + vara["bonus_reacao"]
+        tempo = 1.2 + bonus_reacao
         combo = random.choices(TECLAS, k=3)
     else:
-        tempo = 1.2 + vara["bonus_reacao"]
+        tempo = 1.2 + bonus_reacao
         combo = random.choices(TECLAS, k=1)
 
     print("\n🐟 O peixe mordeu!")
@@ -297,6 +300,7 @@ def pescar():
     linha_quebrada_ate = 0
 
     while True:
+        buffs_ativos = obter_bonus_ativos()
         agora = time.time()
         if agora < linha_quebrada_ate:
             pausa = linha_quebrada_ate - agora
@@ -309,7 +313,7 @@ def pescar():
             continue
 
         limpar_console()
-        exibir_contexto(pool, evento)
+        exibir_contexto(pool, evento, buffs_ativos)
         print(aleatoria(FALAS_PESCA) + "\n")
         vara = VARAS[estado.vara_atual]
 
@@ -318,10 +322,13 @@ def pescar():
             raridade = "Secreto"
             peixe = random.choice(PEIXES_SECRETOS)
         else:
+            bonus_raridade_evento = evento.get("bonus_raridade", {}).copy()
+            for raridade_buff, mult in (buffs_ativos.get("bonus_raridade") or {}).items():
+                bonus_raridade_evento[raridade_buff] = bonus_raridade_evento.get(raridade_buff, 1.0) * mult
             raridades_ajustadas = ajustar_pesos_raridade(
                 pool["raridades"],
-                evento.get("bonus_raridade"),
-                vara.get("bonus_raridade", 0.0),
+                bonus_raridade_evento,
+                vara.get("bonus_raridade", 0.0) + buffs_ativos.get("bonus_raridade_vara", 0.0),
             )
             raridade = random.choices(
                 [r[0] for r in raridades_ajustadas],
@@ -332,7 +339,7 @@ def pescar():
 
         mutacao = None
         mult_mut = 1.0
-        mutacao_chance = 0.15 + vara["bonus_mutacao"] + evento.get("bonus_mutacao", 0)
+        mutacao_chance = 0.15 + vara["bonus_mutacao"] + evento.get("bonus_mutacao", 0) + buffs_ativos.get("bonus_mutacao", 0.0)
         if random.random() < mutacao_chance:
             mutacao = random.choice(list(MUTACOES.keys()))
             mult_mut = MUTACOES[mutacao]
@@ -350,7 +357,7 @@ def pescar():
             continue
 
         peso_base = random.uniform(peso_min, peso_max)
-        kg = peso_base * evento.get("bonus_peso", 1.0)
+        kg = peso_base * evento.get("bonus_peso", 1.0) * buffs_ativos.get("bonus_peso", 1.0)
 
         sucesso = minigame_reacao(vara, raridade)
         if sucesso:
@@ -373,7 +380,14 @@ def pescar():
         if kg > vara["peso_max"]:
             kg = vara["peso_max"]
 
-        valor = (kg * 0.1) * pool["valor_base"] * mult_mut * evento.get("bonus_valor", 1.0) * RARIDADE_VALOR_MULT.get(raridade, 1)
+        valor = (
+            (kg * 0.1)
+            * pool["valor_base"]
+            * mult_mut
+            * evento.get("bonus_valor", 1.0)
+            * buffs_ativos.get("bonus_valor", 1.0)
+            * RARIDADE_VALOR_MULT.get(raridade, 1)
+        )
 
         estado.inventario.append({
             "nome": peixe,
@@ -392,7 +406,7 @@ def pescar():
 
         # Concede XP
         xp_base = kg * RARIDADE_XP_MULT.get(raridade, 1)
-        xp_ganho = int(xp_base * evento.get("xp_multiplicador", 1.0))
+        xp_ganho = int(xp_base * evento.get("xp_multiplicador", 1.0) * buffs_ativos.get("xp_multiplicador", 1.0))
         xp_ganho = max(1, xp_ganho)
         estado.xp += xp_ganho
         print(f"⭐ Você ganhou {xp_ganho} XP!")
@@ -435,6 +449,9 @@ def pescar():
             print("\n🗝️  Você desbloqueou as Caçadas APEX no menu!")
         if mensagem_poco:
             print(mensagem_poco)
+        expirados = consumir_uso()
+        for buff_expirado in expirados:
+            print(f"⏳ O efeito de {buff_expirado.get('nome', 'um buff')} acabou.")
 
         fim_captura = time.time()
         if ultima_captura is not None and (fim_captura - ultima_captura) < INTERVALO_CAPTURA_RAPIDA:
@@ -471,20 +488,26 @@ def pescar():
             break
 
 
-def exibir_contexto(pool, evento):
+def exibir_contexto(pool, evento, buffs=None):
+    buffs = buffs or {}
     print(f"🌊 Local: {pool.get('nome', 'Desconhecido')}")
     print(f"🎯 Vara: {estado.vara_atual}")
     print(f"⚙️  Evento: {evento['nome']}")
     print(f"   {evento['descricao']}")
 
     vara = VARAS[estado.vara_atual]
-    valor_esperado, xp_esperado, raridades_bloqueadas = calcular_expectativas(pool, evento, vara)
+    valor_esperado, xp_esperado, raridades_bloqueadas = calcular_expectativas(pool, evento, vara, buffs)
 
     if valor_esperado or xp_esperado:
         print(f"📈 Expectativa: ~{xp_esperado:.1f} XP | ${valor_esperado:.2f} por lançamento")
     if raridades_bloqueadas:
         bloqueadas = ", ".join(raridades_bloqueadas)
         print(f"⚠️  Raridades pesadas demais para esta vara: {bloqueadas}")
+    ativos = resumo_buffs_ativos()
+    if ativos:
+        print("✨ Buffs ativos:")
+        for linha in ativos:
+            print(f"   • {linha}")
     dica = gerar_dica_alternativas(pool, evento, raridades_bloqueadas)
     if dica:
         print(dica)
@@ -509,20 +532,34 @@ def gerar_dica_alternativas(pool, evento, raridades_bloqueadas=None):
     )
 
 
-def calcular_expectativas(pool, evento, vara):
+def calcular_expectativas(pool, evento, vara, buffs=None):
+    buffs = buffs or {}
+    bonus_raridade_evento = evento.get("bonus_raridade", {})
+    bonus_raridade_buff = buffs.get("bonus_raridade") or {}
+    bonus_raridade = bonus_raridade_evento.copy() if bonus_raridade_evento else {}
+    for raridade, mult in bonus_raridade_buff.items():
+        bonus_raridade[raridade] = bonus_raridade.get(raridade, 1.0) * mult
+
     raridades_ajustadas = ajustar_pesos_raridade(
         pool["raridades"],
-        evento.get("bonus_raridade"),
-        vara.get("bonus_raridade", 0.0),
+        bonus_raridade,
+        vara.get("bonus_raridade", 0.0) + buffs.get("bonus_raridade_vara", 0.0),
     )
     pesos_totais = sum(max(item[1], 0) for item in raridades_ajustadas)
     raridades_bloqueadas = []
 
-    bonus_peso = evento.get("bonus_peso", 1.0)
-    bonus_valor = evento.get("bonus_valor", 1.0)
-    xp_mult = evento.get("xp_multiplicador", 1.0)
+    bonus_peso = evento.get("bonus_peso", 1.0) * buffs.get("bonus_peso", 1.0)
+    bonus_valor = evento.get("bonus_valor", 1.0) * buffs.get("bonus_valor", 1.0)
+    xp_mult = evento.get("xp_multiplicador", 1.0) * buffs.get("xp_multiplicador", 1.0)
     chance_mutacao = max(
-        0.0, min(1.0, 0.15 + vara["bonus_mutacao"] + evento.get("bonus_mutacao", 0))
+        0.0,
+        min(
+            1.0,
+            0.15
+            + vara["bonus_mutacao"]
+            + evento.get("bonus_mutacao", 0)
+            + buffs.get("bonus_mutacao", 0.0),
+        ),
     )
     mult_mutacao_esperado = 1 + chance_mutacao * (MEDIA_MULT_MUTACAO - 1)
 
