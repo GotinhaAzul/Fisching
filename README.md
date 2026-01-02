@@ -1,15 +1,21 @@
--Fisching is a simple RPG text-based fishing game.
+A neblina impossibilita a sua visao, voce extende a sua mao, mas mal consegue ve-la. O chacoalhar de sua pequena canoa contra as ondas faz os ossos de suas pernas tremerem, quase quebrando como as madeiras de sua proa. Sua visao escurece, seu corpo desiste e voce deixa de pensar...
 
--You're a cook, who just recently moved to an unusual fishing island filled with life.
+Por que fez isso? Por que entrou no barco sem um destino? 
 
--!A lot of RNG involved!
+*
 
--You will fish in different locations, advance your skills, buy new rods, collect trophies and... cook!
+Fisching é um RPG simples de pesca baseado em texto.
 
--Tons of secrets are going to be added in later patch-notes
+- Você é um cozinheiro que caiu recentemente em uma ilha de pesca incomum, repleta de vida.
 
--And always stay cautious, huge fish wont wait for you!
+- Muito RNG!
 
-* To unlock APEX hunts catch your first legendary fish.
+- Você pescará em diferentes locais, aprimorará suas habilidades, comprará novas varas de pesca, coletará troféus e... vai cozinhar!
 
-Huge thanks to FISCH for inspiration.
+- Vários segredos serão adicionados em atualizações futuras.
+
+- E sempre fique atento, peixes enormes não esperam por você!
+
+Para desbloquear as Caçadas APEX, pesque seu primeiro peixe lendário.
+
+Um enorme agradecimento a FISCH pela inspiração.
