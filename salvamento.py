@@ -64,6 +64,7 @@ def estado_para_dict():
         "missoes_ativas": estado.missoes_ativas,
         "ultimo_refresh_missoes": estado.ultimo_refresh_missoes,
         "missoes_concluidas": estado.missoes_concluidas,
+        "progresso_faccoes": estado.progresso_faccoes,
         "mostrar_secreto": estado.mostrar_secreto,
         "pools_desbloqueadas": list(estado.pools_desbloqueadas),
         "historias_pool_tocadas": list(estado.historias_pool_tocadas),
@@ -110,6 +111,7 @@ def aplicar_estado(dados):
     estado.missoes_ativas = dados.get("missoes_ativas", [])
     estado.ultimo_refresh_missoes = dados.get("ultimo_refresh_missoes", 0)
     estado.missoes_concluidas = dados.get("missoes_concluidas", 0)
+    estado.progresso_faccoes = dados.get("progresso_faccoes", {})
     estado.mostrar_secreto = dados.get(
         "mostrar_secreto", estado.peixes_pescados_por_raridade.get("Secreto", 0) > 0
     )

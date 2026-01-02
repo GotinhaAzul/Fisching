@@ -43,6 +43,7 @@ trofeus = {}
 missoes_ativas = []
 ultimo_refresh_missoes = 0
 missoes_concluidas = 0
+progresso_faccoes = {}
 
 mostrar_secreto = False
 

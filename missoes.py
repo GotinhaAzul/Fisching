@@ -2,6 +2,7 @@ import random
 import time
 
 import estado
+from faccoes import FACCOES
 from bestiario import BESTIARIO
 from dados import MUTACOES
 from utils import limpar_console
@@ -20,11 +21,31 @@ RARIDADE_PESO_DIFICULDADE = {
 
 
 def menu_missoes():
+    while True:
+        limpar_console()
+        print("🗺️ Central de Missões\n")
+        print(f"⭐ Nível: {estado.nivel}")
+        print(f"✅ Missões concluídas: {estado.missoes_concluidas}")
+        print(f"💰 Dinheiro: ${estado.dinheiro:.2f}\n")
+        print("1. Missões de pesca (RNG)")
+        print("2. Missões de Facções (história)")
+        print("0. Voltar ao menu")
+
+        escolha = input("> ")
+        if escolha == "1":
+            menu_missoes_rng()
+        elif escolha == "2":
+            menu_missoes_faccoes()
+        elif escolha == "0":
+            break
+
+
+def menu_missoes_rng():
     garantir_missoes()
 
     while True:
         limpar_console()
-        print("🗺️  Missões de Pesca\n")
+        print("🎣 Missões de Pesca (RNG)\n")
         print(f"⭐ Nível: {estado.nivel}")
         print(f"✅ Missões concluídas: {estado.missoes_concluidas}")
         print(f"💰 Dinheiro: ${estado.dinheiro:.2f}\n")
@@ -44,7 +65,7 @@ def menu_missoes():
         print("Opções:")
         print("1-3. Entregar missão correspondente")
         print(f"9. Trocar missões ({'Grátis' if pode_refresh_gratis else f'${custo_refresh:.2f}'})")
-        print("0. Voltar ao menu")
+        print("0. Voltar")
 
         escolha = input("> ")
         if escolha == "0":
@@ -228,3 +249,91 @@ def remover_itens_para_missao(missao):
         novo_inventario.append(item)
 
     estado.inventario = novo_inventario
+
+
+# --- Facções ---------------------------------------------------------------
+
+
+def _progresso_faccao(faccao_id):
+    progresso = estado.progresso_faccoes.setdefault(faccao_id, {"capitulo_atual": 0})
+    return progresso
+
+
+def _descricao_buff_preview(buff):
+    if not buff:
+        return "Buff a definir"
+    partes = [buff.get("nome", "Buff misterioso")]
+    efeito = buff.get("efeito")
+    if efeito:
+        partes.append(f"- {efeito}")
+    origem = buff.get("fonte")
+    if origem:
+        partes.append(f"({origem})")
+    return " ".join(partes)
+
+
+def menu_missoes_faccoes():
+    while True:
+        limpar_console()
+        print("🏳️ Missões de Facções\n")
+        print("Tarefas lineares que contam a história do mundo e concedem buffs passivos.")
+        print("Esta é uma prévia: capítulos ainda serão desbloqueados em atualizações.\n")
+
+        if not FACCOES:
+            print("Nenhuma facção cadastrada. Adicione arquivos em 'faccoes/'.")
+            input("\nPressione ENTER para continuar.")
+            break
+
+        faccoes_lista = list(FACCOES.values())
+        for idx, faccao in enumerate(faccoes_lista, 1):
+            progresso = _progresso_faccao(faccao["id"])
+            total_capitulos = len(faccao.get("missoes", []))
+            capitulo_atual = progresso.get("capitulo_atual", 0)
+            print(f"{idx}. {faccao['nome']} ({capitulo_atual}/{total_capitulos} capítulos)")
+            print(f"   {faccao.get('descricao', 'Missões em desenvolvimento.')}")
+            buff_preview = faccao.get("buffs_passivos", [])
+            if buff_preview:
+                print(f"   Buff previsto: {_descricao_buff_preview(buff_preview[0])}")
+            print()
+
+        print("0. Voltar")
+        escolha = input("> ")
+        if escolha == "0":
+            break
+        if escolha.isdigit():
+            escolha_int = int(escolha)
+            if 1 <= escolha_int <= len(faccoes_lista):
+                mostrar_faccao(faccoes_lista[escolha_int - 1])
+
+
+def mostrar_faccao(faccao):
+    limpar_console()
+    progresso = _progresso_faccao(faccao["id"])
+    capitulo_atual = progresso.get("capitulo_atual", 0)
+    missoes_planejadas = faccao.get("missoes", [])
+
+    print(f"🏳️ {faccao['nome']}\n")
+    print(f"{faccao.get('descricao', '')}\n")
+
+    if not missoes_planejadas:
+        print("📜 As missões desta facção ainda estão sendo escritas.")
+    else:
+        print("📚 Linha do tempo prevista:")
+        for idx, capitulo in enumerate(missoes_planejadas, 1):
+            status = "Disponível em breve" if idx > capitulo_atual else "Em desenvolvimento"
+            buff_preview = capitulo.get("buff_preview")
+            print(f"- Capítulo {idx}: {capitulo['titulo']} ({status})")
+            print(f"  {capitulo.get('descricao', '')}")
+            if buff_preview:
+                print(f"  Buff previsto: {_descricao_buff_preview(buff_preview)}")
+            print()
+
+    buffs = faccao.get("buffs_passivos", [])
+    if buffs:
+        print("🎁 Buffs passivos planejados:")
+        for buff in buffs:
+            print(f"- {_descricao_buff_preview(buff)}")
+    else:
+        print("🎁 Buffs passivos: serão revelados futuramente.")
+
+    input("\nPressione ENTER para voltar.")
