@@ -25,6 +25,10 @@ serenidade_desbloqueada = False
 desbloqueou_santuario_sagrado = False
 profecia_desbloqueada = False
 projeto_maelstrom_desbloqueado = False
+acesso_ao_vazio = False
+punicao_pescada = False
+questline_ancioes_desbloqueada = False
+punicao_pity = 0
 
 nivel = 1  # nível do jogador
 xp = 0  # experiência atual

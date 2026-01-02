@@ -30,6 +30,15 @@ from eventos import sortear_evento, ajustar_pesos_raridade, EVENTO_PADRAO
 from dados import MUTACOES, RARIDADE_INTERVALO_PESO, CHANCE_PEIXE_SECRETO, PEIXES_SECRETOS
 
 TECLAS = ["w", "a", "s", "d"]
+POOL_VAZIO_NOME = "O Vazio"
+PESADELOS_NOME = "Pesadelos estilhaçados"
+PUNICAO_NOME = "Punição"
+PUNICAO_CHANCE_BASE = 0.01
+PUNICAO_PITY_INCREMENTO = 0.005
+PUNICAO_PITY_GARANTIA = 120
+PEIXES_DESMATERIALIZAM = {PESADELOS_NOME}
+PEIXES_SEM_RARIDADE_VISUAL = {PUNICAO_NOME}
+PEIXES_IGNORAR_BESTIARIO = {PESADELOS_NOME, PUNICAO_NOME}
 RARIDADE_VALOR_MULT = {
     "Comum": 1,
     "Incomum": 1,
@@ -228,6 +237,60 @@ def minigame_reacao(vara, raridade):
 
     return reacao <= tempo and entrada_processada == combo
 
+
+def minigame_punicao(vara):
+    buffs = obter_bonus_ativos()
+    bonus_reacao = vara["bonus_reacao"] + buffs.get("bonus_reacao", 0.0)
+    tempo = 2.8 + bonus_reacao
+    combo = random.choices(TECLAS, k=10)
+
+    print("\n🐚 O vazio responde.")
+    print("⚡ Digite a sequência profana:")
+    print(" → ".join(combo).upper())
+    print(f"⏳ Você tem {tempo:.1f}s para não ser engolido.")
+
+    entrada_combo, reacao, expirou = _ler_combo_sem_enter(tempo, len(combo))
+    entrada_raw = None
+    if entrada_combo is None and not expirou:
+        inicio = time.time()
+        entrada_raw = _ler_input_com_barra(tempo)
+        reacao = time.time() - inicio
+    elif expirou:
+        return False
+
+    if entrada_combo is None and entrada_raw is None:
+        return False
+
+    if entrada_combo is None:
+        entrada_processada = list(entrada_raw) if " " not in entrada_raw else entrada_raw.split()
+    else:
+        entrada_processada = entrada_combo
+
+    return reacao <= tempo and entrada_processada == combo
+
+
+def _chance_punicao_atual():
+    if estado.punicao_pity >= PUNICAO_PITY_GARANTIA:
+        return 1.0
+    chance = PUNICAO_CHANCE_BASE + (estado.punicao_pity * PUNICAO_PITY_INCREMENTO)
+    return min(chance, 1.0)
+
+
+def _sortear_peixe_vazio():
+    chance = _chance_punicao_atual()
+    if random.random() < chance:
+        return PUNICAO_NOME, "Apex", True
+    return PESADELOS_NOME, "Comum", False
+
+
+def _registrar_resultado_vazio(capturou_punicao):
+    if capturou_punicao:
+        estado.punicao_pity = 0
+        estado.punicao_pescada = True
+    else:
+        estado.punicao_pity += 1
+
+
 def escolher_pool():
     while True:
         limpar_console()
@@ -317,30 +380,44 @@ def pescar():
         print(aleatoria(FALAS_PESCA) + "\n")
         vara = VARAS[estado.vara_atual]
 
-        pescou_secreto = random.random() < CHANCE_PEIXE_SECRETO
-        if pescou_secreto:
-            raridade = "Secreto"
-            peixe = random.choice(PEIXES_SECRETOS)
-        else:
-            bonus_raridade_evento = evento.get("bonus_raridade", {}).copy()
-            for raridade_buff, mult in (buffs_ativos.get("bonus_raridade") or {}).items():
-                bonus_raridade_evento[raridade_buff] = bonus_raridade_evento.get(raridade_buff, 1.0) * mult
-            raridades_ajustadas = ajustar_pesos_raridade(
-                pool["raridades"],
-                bonus_raridade_evento,
-                vara.get("bonus_raridade", 0.0) + buffs_ativos.get("bonus_raridade_vara", 0.0),
-            )
-            raridade = random.choices(
-                [r[0] for r in raridades_ajustadas],
-                weights=[r[1] for r in raridades_ajustadas]
-            )[0]
+        vazio_pool = pool["nome"] == POOL_VAZIO_NOME
+        punicao_sorteada = False
+        pescou_secreto = False
 
-            peixe = random.choice(pool["peixes"][raridade])
+        if vazio_pool:
+            peixe, raridade, punicao_sorteada = _sortear_peixe_vazio()
+        else:
+            pescou_secreto = random.random() < CHANCE_PEIXE_SECRETO
+            if pescou_secreto:
+                raridade = "Secreto"
+                peixe = random.choice(PEIXES_SECRETOS)
+            else:
+                bonus_raridade_evento = evento.get("bonus_raridade", {}).copy()
+                for raridade_buff, mult in (buffs_ativos.get("bonus_raridade") or {}).items():
+                    bonus_raridade_evento[raridade_buff] = bonus_raridade_evento.get(raridade_buff, 1.0) * mult
+                raridades_ajustadas = ajustar_pesos_raridade(
+                    pool["raridades"],
+                    bonus_raridade_evento,
+                    vara.get("bonus_raridade", 0.0) + buffs_ativos.get("bonus_raridade_vara", 0.0),
+                )
+                raridade = random.choices(
+                    [r[0] for r in raridades_ajustadas],
+                    weights=[r[1] for r in raridades_ajustadas]
+                )[0]
+
+                peixe = random.choice(pool["peixes"][raridade])
 
         mutacao = None
         mult_mut = 1.0
-        mutacao_chance = 0.15 + vara["bonus_mutacao"] + evento.get("bonus_mutacao", 0) + buffs_ativos.get("bonus_mutacao", 0.0)
-        if random.random() < mutacao_chance:
+        mutacao_chance = 0.0
+        if not vazio_pool:
+            mutacao_chance = (
+                0.15
+                + vara["bonus_mutacao"]
+                + evento.get("bonus_mutacao", 0)
+                + buffs_ativos.get("bonus_mutacao", 0.0)
+            )
+        if mutacao_chance and random.random() < mutacao_chance:
             mutacao = random.choice(list(MUTACOES.keys()))
             mult_mut = MUTACOES[mutacao]
 
@@ -353,19 +430,32 @@ def pescar():
             dica = gerar_dica_alternativas(pool, evento, raridades_bloqueadas=[raridade])
             if dica:
                 print(dica)
+            if vazio_pool:
+                _registrar_resultado_vazio(False)
             input("\nPressione ENTER para continuar")
             continue
 
         peso_base = random.uniform(peso_min, peso_max)
         kg = peso_base * evento.get("bonus_peso", 1.0) * buffs_ativos.get("bonus_peso", 1.0)
 
-        sucesso = minigame_reacao(vara, raridade)
+        if peixe == PUNICAO_NOME:
+            sucesso = minigame_punicao(vara)
+        else:
+            sucesso = minigame_reacao(vara, raridade)
         if sucesso:
             kg *= 1.15
         else:
+            if peixe == PUNICAO_NOME:
+                print("\n💥 A entidade escapou do anzol e mergulhou no vazio.")
+                if vazio_pool:
+                    _registrar_resultado_vazio(False)
+                input("\nPressione ENTER para continuar")
+                continue
             if raridade == "Apex":
                 print("\n💥 Você errou o combo APEX e o peixe escapou!")
                 input("\nPressione ENTER para continuar")
+                if vazio_pool:
+                    _registrar_resultado_vazio(False)
                 continue
             if mutacao:
                 mutacao = None
@@ -388,20 +478,26 @@ def pescar():
             * buffs_ativos.get("bonus_valor", 1.0)
             * RARIDADE_VALOR_MULT.get(raridade, 1)
         )
+        if peixe in PEIXES_DESMATERIALIZAM or peixe == PUNICAO_NOME:
+            valor = 0
 
-        estado.inventario.append({
+        item_capturado = {
             "nome": peixe,
             "raridade": raridade,
             "mutacao": mutacao,
             "kg": kg,
-            "valor": valor
-        })
+            "valor": valor,
+            "vendavel": peixe != PUNICAO_NOME,
+        }
+
+        if peixe not in PEIXES_DESMATERIALIZAM:
+            estado.inventario.append(item_capturado)
         registrar_pescado_por_raridade(raridade)
         if raridade == "Secreto" and not estado.mostrar_secreto:
             estado.mostrar_secreto = True
 
         # Marca peixe como descoberto no bestiário
-        if raridade != "Secreto":
+        if raridade != "Secreto" and peixe not in PEIXES_IGNORAR_BESTIARIO:
             estado.peixes_descobertos.add(peixe)
 
         # Concede XP
@@ -431,7 +527,7 @@ def pescar():
                 trofeu_msg += " 🏅 Troféu registrado anteriormente."
 
         captura_especial = None
-        if raridade == "Apex":
+        if raridade == "Apex" and peixe != PUNICAO_NOME:
             captura_especial = aleatoria_formatada(FALAS_APEX_CAPTURA, peixe=peixe, kg=kg)
         elif raridade == "Secreto":
             captura_especial = aleatoria_formatada(FALAS_SECRETO_CAPTURA, peixe=peixe, kg=kg)
@@ -439,8 +535,13 @@ def pescar():
         mensagem_poco = tentar_desbloquear_poco_de_desejos()
 
         mut_txt = f" ({mutacao})" if mutacao else ""
-        print(f"\n🎣 Você pescou: {peixe}{mut_txt} [{raridade}] - {kg:.2f}kg")
+        raridade_txt = "" if peixe in PEIXES_SEM_RARIDADE_VISUAL else f" [{raridade}]"
+        print(f"\n🎣 Você pescou: {peixe}{mut_txt}{raridade_txt} - {kg:.2f}kg")
         print(f"💰 Valor: ${valor:.2f}")
+        if peixe in PEIXES_DESMATERIALIZAM:
+            print("🌫️ O peixe se desmaterializa em suas mãos. Nada foi adicionado ao inventário.")
+        elif peixe == PUNICAO_NOME:
+            print("⚖️ A Punição não pode ser vendida, mas permanece em seu inventário.")
         if trofeu_msg:
             print(trofeu_msg)
         if captura_especial:
@@ -451,6 +552,8 @@ def pescar():
             print("\n🗝️  Você desbloqueou as Caçadas APEX no menu!")
         if mensagem_poco:
             print(mensagem_poco)
+        if vazio_pool:
+            _registrar_resultado_vazio(peixe == PUNICAO_NOME and sucesso)
         expirados = consumir_uso()
         for buff_expirado in expirados:
             print(f"⏳ O efeito de {buff_expirado.get('nome', 'um buff')} acabou.")
@@ -553,16 +656,15 @@ def calcular_expectativas(pool, evento, vara, buffs=None):
     bonus_peso = evento.get("bonus_peso", 1.0) * buffs.get("bonus_peso", 1.0)
     bonus_valor = evento.get("bonus_valor", 1.0) * buffs.get("bonus_valor", 1.0)
     xp_mult = evento.get("xp_multiplicador", 1.0) * buffs.get("xp_multiplicador", 1.0)
-    chance_mutacao = max(
-        0.0,
-        min(
-            1.0,
-            0.15
-            + vara["bonus_mutacao"]
-            + evento.get("bonus_mutacao", 0)
-            + buffs.get("bonus_mutacao", 0.0),
-        ),
+    chance_mutacao_base = (
+        0.15
+        + vara["bonus_mutacao"]
+        + evento.get("bonus_mutacao", 0)
+        + buffs.get("bonus_mutacao", 0.0)
     )
+    chance_mutacao = 0.0
+    if pool.get("permite_mutacao", True):
+        chance_mutacao = max(0.0, min(1.0, chance_mutacao_base))
     mult_mutacao_esperado = 1 + chance_mutacao * (MEDIA_MULT_MUTACAO - 1)
 
     valor_esperado = 0.0

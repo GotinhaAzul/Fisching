@@ -16,6 +16,8 @@ for arquivo in os.listdir(pasta):
                 "raridades": getattr(mod, "RARIDADES"),
                 "valor_base": getattr(mod, "VALOR_MULT"),
                 "nivel_min": getattr(mod, "NIVEL_MIN", 1),
+                "ignorar_bestiario": getattr(mod, "IGNORAR_BESTIARIO", False),
+                "permite_mutacao": getattr(mod, "PERMITE_MUTACAO", True),
             }
 
             missoes_min = getattr(mod, "MISSOES_MIN", None)

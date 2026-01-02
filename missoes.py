@@ -4,7 +4,7 @@ import time
 import estado
 from buffs import adicionar_buff_permanente, efeitos_para_texto
 from faccoes import FACCOES
-from bestiario import BESTIARIO
+from bestiario import BESTIARIO, bestiario_completo, progresso_bestiario
 from dados import MUTACOES
 from utils import limpar_console
 from pesca import pools_desbloqueados
@@ -322,6 +322,17 @@ def _formatar_requisitos_missao(requisitos):
     for pool in pools_requeridas:
         linhas.append(f"- Desbloquear a pool {pool}.")
 
+    flags = requisitos.get("flags") or []
+    for flag in flags:
+        linhas.append(f"- Desbloquear: {flag.replace('_', ' ').title()}.")
+
+    if requisitos.get("bestiario_completo"):
+        descobertos, total = progresso_bestiario()
+        linhas.append(f"- Completar 100% do bestiário ({descobertos}/{total}).")
+
+    if requisitos.get("capturou_punicao"):
+        linhas.append("- Pescar a Punição ao menos uma vez.")
+
     return linhas or ["Sem requisitos adicionais."]
 
 
@@ -376,6 +387,18 @@ def _checar_requisitos_faccao(requisitos):
     for pool in pools_requeridas:
         if pool not in estado.pools_desbloqueadas:
             faltas.append(f"Desbloquear a pool {pool}.")
+
+    flags = requisitos.get("flags") or []
+    for flag in flags:
+        if not getattr(estado, flag, False):
+            faltas.append(f"Ativar o acesso '{flag.replace('_', ' ').title()}'.")
+
+    if requisitos.get("bestiario_completo") and not bestiario_completo():
+        descobertos, total = progresso_bestiario()
+        faltas.append(f"Completar o bestiário ({descobertos}/{total}).")
+
+    if requisitos.get("capturou_punicao") and not estado.punicao_pescada:
+        faltas.append("Pescar a Punição com sucesso.")
 
     return faltas
 
