@@ -406,7 +406,9 @@ def pescar():
 
         # Concede XP
         xp_base = kg * RARIDADE_XP_MULT.get(raridade, 1)
+        pool_xp_mult = pool.get("xp_mult", 1.0)
         xp_ganho = int(xp_base * evento.get("xp_multiplicador", 1.0) * buffs_ativos.get("xp_multiplicador", 1.0))
+        xp_ganho = int(xp_ganho * pool_xp_mult)
         xp_ganho = max(1, xp_ganho)
         estado.xp += xp_ganho
         print(f"⭐ Você ganhou {xp_ganho} XP!")

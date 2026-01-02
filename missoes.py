@@ -416,6 +416,7 @@ def _aplicar_recompensas_faccao(faccao, missao):
     dinheiro = recompensa.get("dinheiro", 0)
     xp = recompensa.get("xp", 0)
     buff = recompensa.get("buff_permanente")
+    set_flag = recompensa.get("set_flag")
 
     if dinheiro:
         estado.dinheiro += dinheiro
@@ -437,6 +438,10 @@ def _aplicar_recompensas_faccao(faccao, missao):
                 buff_instancia.get("efeitos")
             )
             print(f"✨ Buff permanente obtido: {buff_instancia.get('nome')} ({efeito_txt})")
+
+    if set_flag:
+        setattr(estado, set_flag, True)
+        print(f"🔓 Novo acesso liberado: {set_flag.replace('_', ' ').title()}.")
 
 
 def _registrar_lore(faccao, missao):

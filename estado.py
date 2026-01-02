@@ -22,6 +22,7 @@ peixes_descobertos = set()
 desbloqueou_cacadas = False
 desbloqueou_poco_de_desejos = False
 serenidade_desbloqueada = False
+desbloqueou_santuario_sagrado = False
 
 nivel = 1  # nível do jogador
 xp = 0  # experiência atual
