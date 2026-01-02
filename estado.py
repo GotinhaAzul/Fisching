@@ -13,6 +13,8 @@ dinheiro = 0
 inventario = []
 pratos = []
 buffs_ativos = []
+buffs_permanentes = []
+diario_faccoes = {}
 vara_atual = "Basica"
 varas_possuidas = ["Basica"]
 peixes_descobertos = set()
@@ -50,3 +52,16 @@ mostrar_secreto = False
 # Controle de pools desbloqueadas e histórias já tocadas
 pools_desbloqueadas = set()
 historias_pool_tocadas = set()
+
+
+def ganhar_xp(quantidade: int):
+    global xp, nivel, xp_por_nivel
+
+    if quantidade <= 0:
+        return
+
+    xp += quantidade
+    while xp >= xp_por_nivel:
+        xp -= xp_por_nivel
+        nivel += 1
+        xp_por_nivel = calcular_xp_por_nivel(nivel)
