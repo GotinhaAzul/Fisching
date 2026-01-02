@@ -55,7 +55,11 @@ FACCAO = {
             "requisitos": {
                 "nivel_min": 6,
                 "missoes_rng_min": 4,
-                "peixes_por_raridade": {"Comum": 12},
+                "peixes": {
+                    "Tilapia": 3,
+                    "Carpa": 2,
+                    "Lambari Dourado": 1,
+                },
             },
             "recompensa": {
                 "xp": 150,
