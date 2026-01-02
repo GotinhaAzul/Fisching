@@ -96,6 +96,12 @@ def narrativa_pool_desbloqueada(pool_info):
             "\n🏴‍☠️  Boatos se espalham: os anciãos expulsaram os piratas da ilha, "
             "mas os tesouros e criaturas que eles atraíram ainda rondam o Pouso Pirata."
         )
+    if nome == "O Vazio":
+        estado.historias_pool_tocadas.add(nome)
+        return (
+            "\n🌑  As páginas rasgadas sussurram sobre um lago que não reflete nada, "
+            "onde o som é engolido e apenas pesadelos sobram."
+        )
 
     return None
 

@@ -98,7 +98,13 @@ def vender_peixe_individual():
         input("Pressione ENTER para voltar.")
         return
 
-    for i, peixe in enumerate(estado.inventario):
+    peixes_vendaveis = [(idx, peixe) for idx, peixe in enumerate(estado.inventario) if peixe.get("vendavel", True)]
+    if not peixes_vendaveis:
+        print("Nenhum peixe pode ser vendido.")
+        input("Pressione ENTER para continuar.")
+        return
+
+    for i, (_, peixe) in enumerate(peixes_vendaveis):
         print(f"{i+1}. {formatar_item_sem_indice(peixe)} - ${peixe['valor']:.2f}")
 
     escolha = input("Digite o número do peixe para vender (0 para cancelar): ")
@@ -109,22 +115,26 @@ def vender_peixe_individual():
     if escolha == 0:
         return
 
-    if 1 <= escolha <= len(estado.inventario):
-        peixe = estado.inventario.pop(escolha - 1)
+    if 1 <= escolha <= len(peixes_vendaveis):
+        indice_real, peixe = peixes_vendaveis[escolha - 1]
+        peixe = estado.inventario.pop(indice_real)
         estado.dinheiro += peixe["valor"]
         print(f"💰 Você vendeu por ${peixe['valor']:.2f}")
         input("Pressione ENTER para continuar.")
 
 def vender_tudo():
-    if not estado.inventario:
-        print("Você não tem peixes para vender.")
+    peixes_vendaveis = [p for p in estado.inventario if p.get("vendavel", True)]
+    if not peixes_vendaveis:
+        print("Você não tem peixes vendáveis no momento.")
         input("Pressione ENTER para voltar.")
         return
 
-    total = sum(p["valor"] for p in estado.inventario)
-    estado.inventario.clear()
+    total = sum(p["valor"] for p in peixes_vendaveis)
+    estado.inventario = [p for p in estado.inventario if not p.get("vendavel", True)]
     estado.dinheiro += total
     print(f"💰 Você vendeu tudo por ${total:.2f}")
+    if estado.inventario:
+        print("⚖️ Alguns itens especiais permaneceram no inventário.")
     input("Pressione ENTER para continuar.")
 
 def mercado_varas():
