@@ -40,6 +40,13 @@ def _carregar_projetos():
 _carregar_projetos()
 
 
+def _flag_liberada(projeto):
+    flag = projeto.get("flag_requerida")
+    if not flag:
+        return True
+    return getattr(estado, flag, False) or projeto["vara"] in estado.varas_possuidas
+
+
 def _peixes_raros_com_mutacao_rara():
     candidatos = []
     for idx, peixe in enumerate(estado.inventario):
@@ -205,6 +212,11 @@ def _formatar_faltantes(faltantes):
 
 
 def _construir_projeto(projeto):
+    if not _flag_liberada(projeto):
+        print("\n❌ Projeto indisponível. Desbloqueie o blueprint correspondente para prosseguir.")
+        input("Pressione ENTER para continuar.")
+        return
+
     pronto, faltantes, req = _avaliar_projeto(projeto)
     if projeto["vara"] not in VARAS:
         print("\n❌ Vara não encontrada no catálogo. Verifique a definição em 'varas'.")
@@ -251,7 +263,11 @@ def menu_construcao_varas():
 
         linhas = []
         opcoes_projetos = []
-        for i, projeto in enumerate(PROJETOS, start=1):
+        for projeto in PROJETOS:
+            if not _flag_liberada(projeto):
+                continue
+
+            i = len(opcoes_projetos) + 1
             pronto, _, req = _avaliar_projeto(projeto)
             bloqueado_por_nivel = estado.nivel < req["nivel_minimo"]
             status = "Pronto" if pronto else "Pendências"
@@ -275,7 +291,7 @@ def menu_construcao_varas():
             continue
 
         escolha_int = int(escolha)
-        if 1 <= escolha_int <= len(PROJETOS):
+        if 1 <= escolha_int <= len(opcoes_projetos):
             projeto, bloqueado_por_nivel, nivel_minimo = opcoes_projetos[escolha_int - 1]
             if bloqueado_por_nivel:
                 print(f"\n❌ ??? - atinja o nível {nivel_minimo} para revelar este projeto.")

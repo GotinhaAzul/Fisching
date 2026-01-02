@@ -189,12 +189,15 @@ def _pode_exibir_vara(nome, dados):
 
 def _descrever_vara(dados):
     bonus = []
-    if dados.get("bonus_raridade", 0):
-        bonus.append(f"+{dados['bonus_raridade']*100:.0f}% raridade")
-    if dados.get("bonus_mutacao", 0):
-        bonus.append(f"+{dados['bonus_mutacao']*100:.0f}% mutação")
-    if dados.get("bonus_reacao", 0):
-        bonus.append(f"+{dados['bonus_reacao']*100:.0f}% reação")
+    bonus_raridade = dados.get("bonus_raridade", 0)
+    if bonus_raridade:
+        bonus.append(f"{bonus_raridade*100:+.0f}% raridade")
+    bonus_mutacao = dados.get("bonus_mutacao", 0)
+    if bonus_mutacao:
+        bonus.append(f"{bonus_mutacao*100:+.0f}% mutação")
+    bonus_reacao = dados.get("bonus_reacao", 0)
+    if bonus_reacao:
+        bonus.append(f"{bonus_reacao*100:+.0f}% reação")
     bonus_txt = " | ".join(bonus) if bonus else "Sem bônus"
     return f"Peso máx: {dados['peso_max']}kg · {bonus_txt}"
 

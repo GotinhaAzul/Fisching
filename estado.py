@@ -23,6 +23,8 @@ desbloqueou_cacadas = False
 desbloqueou_poco_de_desejos = False
 serenidade_desbloqueada = False
 desbloqueou_santuario_sagrado = False
+profecia_desbloqueada = False
+projeto_maelstrom_desbloqueado = False
 
 nivel = 1  # nível do jogador
 xp = 0  # experiência atual

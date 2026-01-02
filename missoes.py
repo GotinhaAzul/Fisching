@@ -284,6 +284,12 @@ def _formatar_requisitos_missao(requisitos):
         return ["Sem requisitos adicionais."]
 
     linhas = []
+
+    faccoes_concluidas = requisitos.get("faccoes_concluidas") or []
+    for faccao_id in faccoes_concluidas:
+        faccao_nome = FACCOES.get(faccao_id, {}).get("nome", faccao_id)
+        linhas.append(f"- Concluir todas as missões da facção {faccao_nome}.")
+
     nivel_min = requisitos.get("nivel_min")
     if nivel_min:
         linhas.append(f"- Nível mínimo {nivel_min}.")
@@ -323,6 +329,14 @@ def _checar_requisitos_faccao(requisitos):
     faltas = []
     if not requisitos:
         return faltas
+
+    faccoes_concluidas = requisitos.get("faccoes_concluidas") or []
+    for faccao_id in faccoes_concluidas:
+        progresso = _progresso_faccao(faccao_id)
+        total_capitulos = len(FACCOES.get(faccao_id, {}).get("missoes", []))
+        if progresso.get("capitulo_atual", 0) < total_capitulos:
+            nome = FACCOES.get(faccao_id, {}).get("nome", faccao_id)
+            faltas.append(f"Concluir a linha de missões da facção {nome}.")
 
     nivel_min = requisitos.get("nivel_min")
     if nivel_min and estado.nivel < nivel_min:
@@ -408,6 +422,12 @@ def _resumo_recompensa(recompensa):
     if buff:
         efeito_txt = buff.get("efeito") or efeitos_para_texto(buff.get("efeitos"))
         linhas.append(f"Buff permanente: {buff.get('nome', 'Buff')} ({efeito_txt})")
+
+    set_flag = recompensa.get("set_flag")
+    if set_flag:
+        flags = set_flag if isinstance(set_flag, (list, tuple, set)) else [set_flag]
+        for flag in flags:
+            linhas.append(f"Desbloqueia: {flag.replace('_', ' ').title()}")
     return linhas or ["Sem recompensas registradas."]
 
 
@@ -439,9 +459,16 @@ def _aplicar_recompensas_faccao(faccao, missao):
             )
             print(f"✨ Buff permanente obtido: {buff_instancia.get('nome')} ({efeito_txt})")
 
+    flags = []
     if set_flag:
-        setattr(estado, set_flag, True)
-        print(f"🔓 Novo acesso liberado: {set_flag.replace('_', ' ').title()}.")
+        if isinstance(set_flag, (list, tuple, set)):
+            flags = list(set_flag)
+        else:
+            flags = [set_flag]
+
+    for flag in flags:
+        setattr(estado, flag, True)
+        print(f"🔓 Novo acesso liberado: {flag.replace('_', ' ').title()}.")
 
 
 def _registrar_lore(faccao, missao):
