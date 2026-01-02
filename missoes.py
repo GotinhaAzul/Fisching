@@ -2,6 +2,7 @@ import random
 import time
 
 import estado
+from buffs import adicionar_buff_permanente, efeitos_para_texto
 from faccoes import FACCOES
 from bestiario import BESTIARIO
 from dados import MUTACOES
@@ -255,15 +256,21 @@ def remover_itens_para_missao(missao):
 
 
 def _progresso_faccao(faccao_id):
-    progresso = estado.progresso_faccoes.setdefault(faccao_id, {"capitulo_atual": 0})
-    return progresso
+    return estado.progresso_faccoes.setdefault(faccao_id, {"capitulo_atual": 0})
+
+
+def _diario_faccao(faccao_id):
+    return estado.diario_faccoes.setdefault(faccao_id, [])
 
 
 def _descricao_buff_preview(buff):
     if not buff:
         return "Buff a definir"
+
     partes = [buff.get("nome", "Buff misterioso")]
-    efeito = buff.get("efeito")
+    efeito = buff.get("efeito") or buff.get("descricao")
+    if not efeito:
+        efeito = efeitos_para_texto(buff.get("efeitos"))
     if efeito:
         partes.append(f"- {efeito}")
     origem = buff.get("fonte")
@@ -272,12 +279,204 @@ def _descricao_buff_preview(buff):
     return " ".join(partes)
 
 
+def _formatar_requisitos_missao(requisitos):
+    if not requisitos:
+        return ["Sem requisitos adicionais."]
+
+    linhas = []
+    nivel_min = requisitos.get("nivel_min")
+    if nivel_min:
+        linhas.append(f"- Nível mínimo {nivel_min}.")
+
+    xp_min = requisitos.get("xp_min")
+    if xp_min:
+        linhas.append(f"- Possuir pelo menos {xp_min} XP acumulado.")
+
+    missoes_rng_min = requisitos.get("missoes_rng_min")
+    if missoes_rng_min:
+        linhas.append(f"- Ter concluído {missoes_rng_min} missões RNG.")
+
+    pagar_dinheiro = requisitos.get("pagar_dinheiro")
+    if pagar_dinheiro:
+        linhas.append(f"- Pagar ${pagar_dinheiro:.2f}.")
+
+    peixes_por_raridade = requisitos.get("peixes_por_raridade") or {}
+    for raridade, qtd in peixes_por_raridade.items():
+        linhas.append(f"- Histórico de {qtd} peixes {raridade}.")
+
+    peixes = requisitos.get("peixes") or {}
+    for peixe, qtd in peixes.items():
+        linhas.append(f"- Sacrificar {qtd}x {peixe} do inventário.")
+
+    mutacoes = requisitos.get("mutacoes") or {}
+    for mut, qtd in mutacoes.items():
+        linhas.append(f"- Sacrificar {qtd} peixe(s) com mutação {mut}.")
+
+    return linhas or ["Sem requisitos adicionais."]
+
+
+def _checar_requisitos_faccao(requisitos):
+    faltas = []
+    if not requisitos:
+        return faltas
+
+    nivel_min = requisitos.get("nivel_min")
+    if nivel_min and estado.nivel < nivel_min:
+        faltas.append(f"Nível mínimo {nivel_min}.")
+
+    xp_min = requisitos.get("xp_min")
+    if xp_min and estado.xp < xp_min:
+        faltas.append(f"XP mínimo {xp_min}.")
+
+    missoes_rng_min = requisitos.get("missoes_rng_min")
+    if missoes_rng_min and estado.missoes_concluidas < missoes_rng_min:
+        faltas.append(f"Concluir {missoes_rng_min} missões RNG.")
+
+    pagar_dinheiro = requisitos.get("pagar_dinheiro", 0)
+    if pagar_dinheiro and estado.dinheiro < pagar_dinheiro:
+        faltas.append(f"Dinheiro insuficiente (${pagar_dinheiro:.2f}).")
+
+    peixes_por_raridade = requisitos.get("peixes_por_raridade") or {}
+    for raridade, qtd in peixes_por_raridade.items():
+        obtidos = estado.peixes_pescados_por_raridade.get(raridade, 0)
+        if obtidos < qtd:
+            faltas.append(f"Capturar {qtd} peixes {raridade} (histórico atual: {obtidos}).")
+
+    peixes = requisitos.get("peixes") or {}
+    for peixe, qtd in peixes.items():
+        encontrados = sum(1 for item in estado.inventario if item.get("nome") == peixe)
+        if encontrados < qtd:
+            faltas.append(f"Sacrificar {qtd}x {peixe} (inventário: {encontrados}).")
+
+    mutacoes = requisitos.get("mutacoes") or {}
+    for mut, qtd in mutacoes.items():
+        encontrados = sum(1 for item in estado.inventario if item.get("mutacao") == mut)
+        if encontrados < qtd:
+            faltas.append(f"Sacrificar {qtd} peixe(s) com mutação {mut} (inventário: {encontrados}).")
+
+    return faltas
+
+
+def _remover_itens_por_chave(requisitos, chave):
+    if not requisitos:
+        return
+
+    faltantes = requisitos.copy()
+    novo_inventario = []
+    for item in estado.inventario:
+        alvo = item.get(chave)
+        if alvo in faltantes and faltantes[alvo] > 0:
+            faltantes[alvo] -= 1
+            continue
+        novo_inventario.append(item)
+
+    estado.inventario = novo_inventario
+
+
+def _consumir_recursos_missao(requisitos):
+    if not requisitos:
+        return
+
+    pagar_dinheiro = requisitos.get("pagar_dinheiro", 0)
+    if pagar_dinheiro:
+        estado.dinheiro -= pagar_dinheiro
+
+    _remover_itens_por_chave(requisitos.get("peixes"), "nome")
+    _remover_itens_por_chave(requisitos.get("mutacoes"), "mutacao")
+
+
+def _resumo_recompensa(recompensa):
+    if not recompensa:
+        return ["Sem recompensas registradas."]
+
+    linhas = []
+    if recompensa.get("dinheiro"):
+        linhas.append(f"+${recompensa['dinheiro']:.2f}")
+    if recompensa.get("xp"):
+        linhas.append(f"+{recompensa['xp']} XP")
+
+    buff = recompensa.get("buff_permanente")
+    if buff:
+        efeito_txt = buff.get("efeito") or efeitos_para_texto(buff.get("efeitos"))
+        linhas.append(f"Buff permanente: {buff.get('nome', 'Buff')} ({efeito_txt})")
+    return linhas or ["Sem recompensas registradas."]
+
+
+def _aplicar_recompensas_faccao(faccao, missao):
+    recompensa = missao.get("recompensa") or {}
+    dinheiro = recompensa.get("dinheiro", 0)
+    xp = recompensa.get("xp", 0)
+    buff = recompensa.get("buff_permanente")
+
+    if dinheiro:
+        estado.dinheiro += dinheiro
+        print(f"💰 Você recebeu ${dinheiro:.2f}.")
+
+    if xp:
+        nivel_antes = estado.nivel
+        estado.ganhar_xp(xp)
+        print(f"⭐ Você ganhou {xp} XP.")
+        if estado.nivel > nivel_antes:
+            print(f"🎉 Parabéns! Você subiu para o nível {estado.nivel}!")
+
+    if buff:
+        buff_instancia = adicionar_buff_permanente(
+            buff, fonte=f"{faccao.get('nome')} - {missao.get('titulo')}"
+        )
+        if buff_instancia:
+            efeito_txt = buff_instancia.get("efeito") or efeitos_para_texto(
+                buff_instancia.get("efeitos")
+            )
+            print(f"✨ Buff permanente obtido: {buff_instancia.get('nome')} ({efeito_txt})")
+
+
+def _registrar_lore(faccao, missao):
+    lore = missao.get("lore")
+    if not lore:
+        return
+
+    diario = _diario_faccao(faccao["id"])
+    entrada_id = missao.get("id") or missao.get("titulo")
+
+    if any(ent.get("id") == entrada_id for ent in diario):
+        return
+
+    diario.append(
+        {
+            "id": entrada_id,
+            "titulo": missao.get("titulo"),
+            "texto": lore,
+        }
+    )
+
+
+def mostrar_diario_faccoes(faccoes_lista=None):
+    faccoes_lista = faccoes_lista or list(FACCOES.values())
+    limpar_console()
+    print("📓 Diário das Facções\n")
+
+    total = 0
+    for faccao in faccoes_lista:
+        entradas = _diario_faccao(faccao["id"])
+        if not entradas:
+            continue
+        total += len(entradas)
+        print(f"🏳️ {faccao.get('nome')}")
+        for entrada in entradas:
+            print(f"• {entrada.get('titulo')}: {entrada.get('texto')}")
+        print()
+
+    if total == 0:
+        print("Nenhuma anotação ainda. Conclua missões de facção para registrar o lore.")
+
+    input("\nPressione ENTER para voltar.")
+
+
 def menu_missoes_faccoes():
     while True:
         limpar_console()
         print("🏳️ Missões de Facções\n")
-        print("Tarefas lineares que contam a história do mundo e concedem buffs passivos.")
-        print("Esta é uma prévia: capítulos ainda serão desbloqueados em atualizações.\n")
+        print("Tarefas lineares que contam a história do mundo e concedem buffs passivos.\n")
 
         if not FACCOES:
             print("Nenhuma facção cadastrada. Adicione arquivos em 'faccoes/'.")
@@ -285,6 +484,7 @@ def menu_missoes_faccoes():
             break
 
         faccoes_lista = list(FACCOES.values())
+        print("D. Abrir diário das facções")
         for idx, faccao in enumerate(faccoes_lista, 1):
             progresso = _progresso_faccao(faccao["id"])
             total_capitulos = len(faccao.get("missoes", []))
@@ -293,47 +493,111 @@ def menu_missoes_faccoes():
             print(f"   {faccao.get('descricao', 'Missões em desenvolvimento.')}")
             buff_preview = faccao.get("buffs_passivos", [])
             if buff_preview:
-                print(f"   Buff previsto: {_descricao_buff_preview(buff_preview[0])}")
+                print(f"   Buff previsto: {_descricao_buff_preview(buff_preview[capitulo_atual % len(buff_preview)])}")
             print()
 
         print("0. Voltar")
-        escolha = input("> ")
+        escolha = input("> ").strip().lower()
         if escolha == "0":
             break
+        if escolha == "d":
+            mostrar_diario_faccoes(faccoes_lista)
+            continue
         if escolha.isdigit():
             escolha_int = int(escolha)
             if 1 <= escolha_int <= len(faccoes_lista):
                 mostrar_faccao(faccoes_lista[escolha_int - 1])
 
 
-def mostrar_faccao(faccao):
-    limpar_console()
-    progresso = _progresso_faccao(faccao["id"])
-    capitulo_atual = progresso.get("capitulo_atual", 0)
-    missoes_planejadas = faccao.get("missoes", [])
-
-    print(f"🏳️ {faccao['nome']}\n")
-    print(f"{faccao.get('descricao', '')}\n")
-
+def _imprimir_linha_do_tempo(missoes_planejadas, capitulo_atual):
     if not missoes_planejadas:
-        print("📜 As missões desta facção ainda estão sendo escritas.")
-    else:
-        print("📚 Linha do tempo prevista:")
-        for idx, capitulo in enumerate(missoes_planejadas, 1):
-            status = "Disponível em breve" if idx > capitulo_atual else "Em desenvolvimento"
-            buff_preview = capitulo.get("buff_preview")
-            print(f"- Capítulo {idx}: {capitulo['titulo']} ({status})")
-            print(f"  {capitulo.get('descricao', '')}")
-            if buff_preview:
-                print(f"  Buff previsto: {_descricao_buff_preview(buff_preview)}")
-            print()
+        print("📜 As missões desta facção ainda estão sendo escritas.\n")
+        return
 
-    buffs = faccao.get("buffs_passivos", [])
-    if buffs:
-        print("🎁 Buffs passivos planejados:")
-        for buff in buffs:
-            print(f"- {_descricao_buff_preview(buff)}")
-    else:
-        print("🎁 Buffs passivos: serão revelados futuramente.")
+    print("📚 Linha do tempo:")
+    for idx, capitulo in enumerate(missoes_planejadas, 1):
+        if idx <= capitulo_atual:
+            status = "✅ Concluído"
+        elif idx == capitulo_atual + 1:
+            status = "🧭 Próximo passo"
+        else:
+            status = "🔒 Bloqueado"
+        print(f"- Capítulo {idx}: {capitulo['titulo']} ({status})")
+    print()
 
-    input("\nPressione ENTER para voltar.")
+
+def _proxima_missao(missoes_planejadas, capitulo_atual):
+    if capitulo_atual >= len(missoes_planejadas):
+        return None
+    return missoes_planejadas[capitulo_atual]
+
+
+def _mostrar_resumo_missao(missao):
+    print(f"📌 {missao.get('titulo')}")
+    print(missao.get("descricao", ""))
+    print("\nRequisitos:")
+    for linha in _formatar_requisitos_missao(missao.get("requisitos")):
+        print(linha)
+
+    print("\nRecompensas:")
+    for linha in _resumo_recompensa(missao.get("recompensa")):
+        print(f"- {linha}")
+
+    lore = missao.get("lore")
+    if lore:
+        print("\nLore revelado ao concluir:")
+        print(f"- {lore}")
+
+
+def _tentar_concluir_missao_faccao(faccao, missao):
+    faltas = _checar_requisitos_faccao(missao.get("requisitos"))
+    if faltas:
+        print("\n⏳ Você ainda não cumpre os requisitos:")
+        for falta in faltas:
+            print(f"- {falta}")
+        input("\nPressione ENTER para continuar.")
+        return False
+
+    _consumir_recursos_missao(missao.get("requisitos"))
+    _aplicar_recompensas_faccao(faccao, missao)
+    _registrar_lore(faccao, missao)
+    progresso = _progresso_faccao(faccao["id"])
+    progresso["capitulo_atual"] = progresso.get("capitulo_atual", 0) + 1
+
+    input("\nPressione ENTER para continuar.")
+    return True
+
+
+def mostrar_faccao(faccao):
+    while True:
+        limpar_console()
+        progresso = _progresso_faccao(faccao["id"])
+        capitulo_atual = progresso.get("capitulo_atual", 0)
+        missoes_planejadas = faccao.get("missoes", [])
+
+        print(f"🏳️ {faccao['nome']}\n")
+        print(f"{faccao.get('descricao', '')}\n")
+
+        _imprimir_linha_do_tempo(missoes_planejadas, capitulo_atual)
+
+        proxima = _proxima_missao(missoes_planejadas, capitulo_atual)
+        if proxima:
+            _mostrar_resumo_missao(proxima)
+            print("\nOpções:")
+            print("1. Tentar concluir a missão")
+            print("2. Abrir diário desta facção")
+        else:
+            print("🎉 Todas as missões desta facção foram concluídas!")
+            print("1. Abrir diário desta facção")
+
+        print("0. Voltar")
+        escolha = input("> ").strip()
+        if escolha == "0":
+            break
+        if escolha == "1":
+            if proxima:
+                _tentar_concluir_missao_faccao(faccao, proxima)
+            else:
+                mostrar_diario_faccoes([faccao])
+        elif escolha == "2" and proxima:
+            mostrar_diario_faccoes([faccao])

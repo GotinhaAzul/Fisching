@@ -49,6 +49,7 @@ def estado_para_dict():
         "inventario": estado.inventario,
         "pratos": estado.pratos,
         "buffs_ativos": estado.buffs_ativos,
+        "buffs_permanentes": estado.buffs_permanentes,
         "vara_atual": estado.vara_atual,
         "varas_possuidas": estado.varas_possuidas,
         "peixes_descobertos": list(estado.peixes_descobertos),
@@ -65,6 +66,7 @@ def estado_para_dict():
         "ultimo_refresh_missoes": estado.ultimo_refresh_missoes,
         "missoes_concluidas": estado.missoes_concluidas,
         "progresso_faccoes": estado.progresso_faccoes,
+        "diario_faccoes": estado.diario_faccoes,
         "mostrar_secreto": estado.mostrar_secreto,
         "pools_desbloqueadas": list(estado.pools_desbloqueadas),
         "historias_pool_tocadas": list(estado.historias_pool_tocadas),
@@ -87,6 +89,9 @@ def aplicar_estado(dados):
     ]
     estado.pratos = pratos_salvos + pratos_migrados
     estado.buffs_ativos = normalizar_buffs_salvos(dados.get("buffs_ativos", []))
+    estado.buffs_permanentes = normalizar_buffs_salvos(
+        dados.get("buffs_permanentes", []), permanente=True
+    )
     estado.vara_atual = dados.get("vara_atual", estado.vara_atual)
     estado.varas_possuidas = dados.get("varas_possuidas", estado.varas_possuidas)
     estado.peixes_descobertos = set(dados.get("peixes_descobertos", []))
@@ -112,6 +117,7 @@ def aplicar_estado(dados):
     estado.ultimo_refresh_missoes = dados.get("ultimo_refresh_missoes", 0)
     estado.missoes_concluidas = dados.get("missoes_concluidas", 0)
     estado.progresso_faccoes = dados.get("progresso_faccoes", {})
+    estado.diario_faccoes = dados.get("diario_faccoes", {})
     estado.mostrar_secreto = dados.get(
         "mostrar_secreto", estado.peixes_pescados_por_raridade.get("Secreto", 0) > 0
     )
