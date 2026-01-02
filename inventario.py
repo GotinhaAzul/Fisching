@@ -180,6 +180,11 @@ def _pode_exibir_vara(nome, dados):
         return False
     if nome == "Serenidade" and not estado.serenidade_desbloqueada and nome not in estado.varas_possuidas:
         return False
+    if dados.get("requer_pool") and dados.get("requer_pool") not in estado.pools_desbloqueadas:
+        return False
+    requer_buff = dados.get("requer_buff_permanente")
+    if requer_buff and not any(buff.get("id") == requer_buff for buff in estado.buffs_permanentes):
+        return False
     return nome in estado.varas_possuidas or estado.missoes_concluidas >= dados.get("missoes_minimas", 0)
 
 def _descrever_vara(dados):
