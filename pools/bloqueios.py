@@ -23,6 +23,10 @@ def pool_desbloqueada(pool):
     if pool["nome"] == POCO_DE_DESEJOS_NOME:
         return estado.desbloqueou_poco_de_desejos
 
+    requer_flag = pool.get("requer_flag")
+    if requer_flag and not getattr(estado, requer_flag, False):
+        return False
+
     if estado.nivel < pool.get("nivel_min", 1):
         return False
 
@@ -36,6 +40,10 @@ def pool_desbloqueada(pool):
 def descricao_pool_bloqueada(pool):
     if pool["nome"] == POCO_DE_DESEJOS_NOME:
         return "??? (As lendas aguardam seu desejo.)"
+
+    requer_flag = pool.get("requer_flag")
+    if requer_flag:
+        return "??? (Segredos ainda dormem sob a ilha.)"
 
     if pool["nome"] == "Pouso Pirata":
         dica = pool.get("dica_bloqueio")
