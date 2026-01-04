@@ -68,6 +68,54 @@ EVENTOS = [
             "Estilhaçado": 1.5,
         },
     },
+    {
+        "nome": "Tempestade Solar",
+        "descricao": "Ejeções de plasma aquecem as correntes. Peixes banhados por energia ganham valor e peso extra, e mutações elétricas ficam mais comuns.",
+        "bonus_valor": 1.2,
+        "bonus_peso": 1.15,
+        "bonus_mutacao": 0.06,
+        "bonus_raridade": {"Raro": 1.08, "Lendário": 1.15},
+        "peixes_exclusivos": {
+            "Incomum": ["Tilápia Solar", "Dourado Radiante"],
+            "Raro": ["Tubarão Labareda", "Dourado Coronal"],
+            "Lendário": ["Leviatã de Fogo Frio"],
+        },
+        "mutacoes_exclusivas": {
+            "Carregado": 1.3,
+            "Superaquecido": 1.4,
+        },
+    },
+    {
+        "nome": "Aurora Boreal",
+        "descricao": "Cortinas de luz dançam no céu e ecoam na água. Peixes raros se aproximam hipnotizados e rendem mais XP.",
+        "bonus_raridade": {"Incomum": 1.05, "Raro": 1.12, "Lendário": 1.18},
+        "xp_multiplicador": 1.25,
+        "peixes_exclusivos": {
+            "Incomum": ["Sardinha Boreal", "Pargo Esmeralda"],
+            "Raro": ["Enguia de Luz Fria", "Salmão das Cortinas"],
+            "Lendário": ["Serpente Boreal"],
+            "Secreto": ["Koi do Crepúsculo"],
+        },
+        "mutacoes_exclusivas": {
+            "Iridescente": 1.3,
+            "Hipnótico": 1.45,
+        },
+    },
+    {
+        "nome": "Eclipse Anelar",
+        "descricao": "A sombra do eclipse acalma a superfície, mas desperta criaturas antigas nas profundezas. Grandes chances de Apex e mutações temporais.",
+        "bonus_raridade": {"Raro": 1.05, "Lendário": 1.1, "Apex": 1.35},
+        "bonus_peso": 1.1,
+        "peixes_exclusivos": {
+            "Raro": ["Bagre Anelar"],
+            "Lendário": ["Arraia do Anel Luminoso"],
+            "Apex": ["Kujira do Eclipse"],
+        },
+        "mutacoes_exclusivas": {
+            "Temporal": 1.7,
+            "Sombrio": 1.25,
+        },
+    },
 ]
 
 EVENTO_PADRAO = {
