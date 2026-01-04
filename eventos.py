@@ -92,18 +92,38 @@ def peixes_exclusivos_para_pool(evento, pool_nome, raridade):
     return peixes_evento.get(raridade, [])
 
 
-def mutacoes_disponiveis(evento):
-    """Combina mutações padrão com mutações exclusivas do evento atual."""
+MUTACAO_PESO_PADRAO = 1.0
+MUTACAO_PESO_FAVORITA = 2.0
+
+
+def mutacoes_disponiveis(evento, vara=None):
+    """Combina mutações padrão com mutações exclusivas do evento e da vara atual."""
     mutacoes = MUTACOES.copy()
     mutacoes.update(evento.get("mutacoes_exclusivas", {}))
+    if vara:
+        mutacoes.update(vara.get("mutacoes_exclusivas", {}))
     return mutacoes
 
 
-def media_multiplicador_mutacoes(evento):
-    mutacoes = mutacoes_disponiveis(evento)
+def pesos_mutacoes(mutacoes, mutacoes_prioritarias=None):
+    """Define pesos para sorteio de mutações, dando preferência às mutações da vara."""
+    prioritarias = mutacoes_prioritarias or set()
+    return [
+        MUTACAO_PESO_FAVORITA if mutacao in prioritarias else MUTACAO_PESO_PADRAO
+        for mutacao in mutacoes
+    ]
+
+
+def media_multiplicador_mutacoes(evento, vara=None):
+    mutacoes = mutacoes_disponiveis(evento, vara)
+    prioritarias = set(vara.get("mutacoes_exclusivas", {}).keys()) if vara else set()
+    pesos = pesos_mutacoes(mutacoes, prioritarias)
     if not mutacoes:
         return 1.0
-    return sum(mutacoes.values()) / len(mutacoes)
+    soma_pesos = sum(pesos)
+    if soma_pesos <= 0:
+        return 1.0
+    return sum(mult * peso for mult, peso in zip(mutacoes.values(), pesos)) / soma_pesos
 
 
 def listar_peixes_exclusivos():

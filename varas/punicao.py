@@ -11,4 +11,5 @@ DADOS_VARA = {
         "rápida, precisa, pesada e ainda amplifica seu aprendizado."
     ),
     "somente_construcao": True,
+    "mutacoes_exclusivas": {"Punido": 1.6},
 }

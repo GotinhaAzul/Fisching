@@ -32,6 +32,7 @@ from eventos import (
     media_multiplicador_mutacoes,
     mutacoes_disponiveis,
     peixes_exclusivos_para_pool,
+    pesos_mutacoes,
     sortear_evento,
 )
 from dados import RARIDADE_INTERVALO_PESO, CHANCE_PEIXE_SECRETO, PEIXES_SECRETOS
@@ -421,7 +422,7 @@ def pescar():
         mutacao = None
         mult_mut = 1.0
         mutacao_chance = 0.0
-        mutacoes_evento = mutacoes_disponiveis(evento)
+        mutacoes_evento = mutacoes_disponiveis(evento, vara)
         if not vazio_pool:
             mutacao_chance = (
                 0.15
@@ -430,7 +431,10 @@ def pescar():
                 + buffs_ativos.get("bonus_mutacao", 0.0)
             )
         if mutacao_chance and random.random() < mutacao_chance:
-            mutacao = random.choice(list(mutacoes_evento.keys()))
+            prioritarias = set(vara.get("mutacoes_exclusivas", {}).keys())
+            chaves_mutacoes = list(mutacoes_evento.keys())
+            pesos = pesos_mutacoes(chaves_mutacoes, prioritarias)
+            mutacao = random.choices(chaves_mutacoes, weights=pesos)[0]
             mult_mut = mutacoes_evento[mutacao]
 
         peso_min, peso_max = RARIDADE_INTERVALO_PESO.get(raridade, (1, 5))
@@ -684,7 +688,7 @@ def calcular_expectativas(pool, evento, vara, buffs=None):
     chance_mutacao = 0.0
     if pool.get("permite_mutacao", True):
         chance_mutacao = max(0.0, min(1.0, chance_mutacao_base))
-    mult_mutacao_base = media_multiplicador_mutacoes(evento)
+    mult_mutacao_base = media_multiplicador_mutacoes(evento, vara)
     mult_mutacao_esperado = 1 + chance_mutacao * (mult_mutacao_base - 1)
 
     valor_esperado = 0.0
