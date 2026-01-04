@@ -4,6 +4,20 @@ from varas import VARAS
 from utils import formatar_contagem_por_raridade, limpar_console, mostrar_lista_paginada
 from falas import aleatoria, FALAS_MERCADO
 
+RARIDADES_ORDEM = {
+    "Secreto": 5,
+    "Apex": 4,
+    "Lendário": 3,
+    "Raro": 2,
+    "Incomum": 1,
+    "Comum": 0,
+}
+
+RARIDADE_INPUT_MAP = {chave.lower(): chave for chave in RARIDADES_ORDEM}
+RARIDADE_INPUT_MAP.update(
+    {chave.lower().replace("á", "a"): chave for chave in RARIDADES_ORDEM}
+)
+
 def mostrar_inventario():
     while True:
         limpar_console()
@@ -27,6 +41,7 @@ def mostrar_inventario():
         print("1. Ver peixes")
         print("2. Ver pratos (consumir)")
         print("3. Trocar de vara" + ("" if pode_trocar else " (necessário ter outra vara)"))
+        print("4. Ver troféus lendários")
         print("0. Voltar")
         escolha = input("> ")
 
@@ -41,6 +56,8 @@ def mostrar_inventario():
             else:
                 print("Você ainda não possui outra vara.")
                 input("Pressione ENTER para continuar.")
+        elif escolha == "4":
+            mostrar_trofeus()
         elif escolha == "0":
             break
 
@@ -51,8 +68,39 @@ def listar_peixes():
         input("\nPressione ENTER para voltar.")
         return
 
-    linhas = [formatar_item(i, peixe) for i, peixe in enumerate(estado.inventario, 1)]
-    mostrar_lista_paginada(linhas, titulo="🐟 Seus Peixes", itens_por_pagina=12)
+    filtros = {
+        "raridade": None,
+        "mutacao": None,
+        "vendavel": None,
+        "ordenacao": "captura",
+    }
+    pagina = 0
+
+    while True:
+        linhas = _peixes_formatados_filtrados(filtros)
+        resumo = _resumo_filtros(filtros)
+        titulo = (
+            "🐟 Seus Peixes\n"
+            f"Mostrando {len(linhas)}/{len(estado.inventario)} itens"
+            f" | Filtros: {resumo}\n"
+            "(F) Filtrar/ordenar\n"
+        )
+        escolha, pagina = mostrar_lista_paginada(
+            linhas,
+            titulo=titulo,
+            itens_por_pagina=12,
+            prompt="> ",
+            pagina_inicial=pagina,
+        )
+
+        if escolha == "0":
+            break
+        if escolha.lower() == "f":
+            filtros = _configurar_filtros(filtros)
+            pagina = 0
+            continue
+        if escolha.isdigit():
+            continue
 
 
 def listar_pratos():
@@ -91,6 +139,22 @@ def listar_pratos():
                 print(f"\nVocê consumiu {prato['nome']}, mas ele não concede buff.")
             input("\nPressione ENTER para continuar.")
             break
+
+
+def mostrar_trofeus():
+    if not estado.trofeus:
+        limpar_console()
+        print("Nenhum troféu lendário registrado ainda.")
+        input("\nPressione ENTER para voltar.")
+        return
+
+    linhas = []
+    for nome, dados in sorted(estado.trofeus.items(), key=lambda item: item[0]):
+        linhas.append(
+            f"- {nome}: {dados.get('kg', 0):.2f}kg (Pool: {dados.get('pool', 'Desconhecida')})"
+        )
+
+    mostrar_lista_paginada(linhas, titulo="🏅 Troféus Lendários", itens_por_pagina=12)
 
 def vender_peixe_individual():
     if not estado.inventario:
@@ -248,4 +312,95 @@ def formatar_item_sem_indice(item):
         return f"{item['nome']} [Prato] - ${item['valor']:.2f}"
     mut = f" ({item['mutacao']})" if item.get("mutacao") else ""
     kg = item.get("kg", 0)
-    return f"{item['nome']}{mut} - {item.get('raridade','?')} - {kg:.2f}kg"
+    valor_txt = f" - ${item['valor']:.2f}" if "valor" in item else ""
+    pool_txt = f" | Pool: {item.get('pool')}" if item.get("pool") else ""
+    return f"{item['nome']}{mut} - {item.get('raridade','?')} - {kg:.2f}kg{valor_txt}{pool_txt}"
+
+
+def _resumo_filtros(filtros):
+    partes = []
+    if filtros.get("raridade"):
+        partes.append(f"Raridade={filtros['raridade']}")
+    if filtros.get("mutacao"):
+        partes.append(f"Mutação={filtros['mutacao']}")
+    if filtros.get("vendavel") is not None:
+        partes.append("Vendáveis" if filtros["vendavel"] else "Não vendáveis")
+    ordenacao = filtros.get("ordenacao", "captura")
+    partes.append(f"Ordem={ordenacao}")
+    return ", ".join(partes) if partes else "Nenhum"
+
+
+def _peixes_formatados_filtrados(filtros):
+    filtrados = []
+    for idx, peixe in enumerate(estado.inventario, 1):
+        if peixe.get("tipo") == "prato":
+            continue
+        if filtros.get("raridade") and peixe.get("raridade") != filtros["raridade"]:
+            continue
+        mutacao_filtro = filtros.get("mutacao")
+        if mutacao_filtro == "com" and not peixe.get("mutacao"):
+            continue
+        if mutacao_filtro == "sem" and peixe.get("mutacao"):
+            continue
+        vendavel_filtro = filtros.get("vendavel")
+        if vendavel_filtro is not None and peixe.get("vendavel", True) != vendavel_filtro:
+            continue
+        filtrados.append((idx, peixe))
+
+    ordenacao = filtros.get("ordenacao", "captura")
+    filtrados = _ordenar_peixes(filtrados, ordenacao)
+    return [formatar_item(idx, peixe) for idx, peixe in filtrados]
+
+
+def _ordenar_peixes(peixes, ordenacao):
+    if ordenacao == "peso":
+        chave = lambda item: (-item[1].get("kg", 0), item[0])
+    elif ordenacao == "valor":
+        chave = lambda item: (-item[1].get("valor", 0), item[0])
+    elif ordenacao == "raridade":
+        chave = lambda item: (
+            -RARIDADES_ORDEM.get(item[1].get("raridade"), -1),
+            item[1].get("nome", ""),
+            item[0],
+        )
+    elif ordenacao == "nome":
+        chave = lambda item: (item[1].get("nome", ""), item[0])
+    elif ordenacao == "mutacao":
+        chave = lambda item: ("" if item[1].get("mutacao") else "z", item[1].get("nome", ""), item[0])
+    else:
+        return peixes
+    return sorted(peixes, key=chave)
+
+
+def _configurar_filtros(filtros_atual):
+    filtros = filtros_atual.copy()
+    limpar_console()
+    print("🎛️ Configurar filtros e ordenação\n")
+    print("Raridades disponíveis: Comum, Incomum, Raro, Lendário, Apex, Secreto")
+    raridade_raw = input("Filtrar por raridade (ENTER para ignorar): ").strip().lower()
+    filtros["raridade"] = RARIDADE_INPUT_MAP.get(raridade_raw)
+
+    print("\nMutação: [c]om, [s]em ou ENTER para ignorar")
+    mut = input("> ").strip().lower()
+    if mut == "c":
+        filtros["mutacao"] = "com"
+    elif mut == "s":
+        filtros["mutacao"] = "sem"
+    else:
+        filtros["mutacao"] = None
+
+    print("\nVendáveis: [v]endáveis, [n]ão vendáveis ou ENTER para ignorar")
+    vendaveis = input("> ").strip().lower()
+    if vendaveis == "v":
+        filtros["vendavel"] = True
+    elif vendaveis == "n":
+        filtros["vendavel"] = False
+    else:
+        filtros["vendavel"] = None
+
+    print("\nOrdenação: captura (padrão), peso, valor, raridade, nome, mutacao")
+    ordenacao = input("> ").strip().lower()
+    filtros["ordenacao"] = ordenacao if ordenacao else "captura"
+
+    input("\nPressione ENTER para aplicar.")
+    return filtros

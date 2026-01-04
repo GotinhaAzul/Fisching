@@ -3,7 +3,7 @@ from pesca import pescar
 from inventario import mostrar_inventario, vender_peixe_individual, vender_tudo, mercado_varas
 from cozinha import cozinhar
 from utils import formatar_contagem_por_raridade, limpar_console, mostrar_lista_paginada
-from bestiario import BESTIARIO
+from bestiario import BESTIARIO, progresso_bestiario
 from dados import RARIDADE_INTERVALO_PESO
 from falas import FALAS_MENU, aleatoria
 from missoes import menu_missoes
@@ -135,7 +135,9 @@ def mercado():
 
 
 def mostrar_bestiario():
-    titulo = "📖 Bestiário"
+    descobertos, total = progresso_bestiario()
+    percentual = (descobertos / total * 100) if total else 0
+    titulo = f"📖 Bestiário ({descobertos}/{total} - {percentual:.0f}%)"
     raridades_descobertas = set()
     for peixe in estado.peixes_descobertos:
         info = BESTIARIO.get(peixe)
@@ -150,6 +152,9 @@ def mostrar_bestiario():
         BESTIARIO.items(),
         key=lambda item: (ordem_raridade_idx.get(item[1].get("raridade"), len(ordem_raridade_idx)), item[0]),
     )
+
+    linhas.append(f"Progresso: {descobertos}/{total} ({percentual:.0f}%)")
+    linhas.append("")
 
     for nome, info in bestiario_ordenado:
         if nome in estado.peixes_descobertos:
