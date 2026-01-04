@@ -32,6 +32,7 @@ acesso_ao_vazio = False
 punicao_pescada = False
 questline_ancioes_desbloqueada = False
 punicao_pity = 0
+introducao_mostrada = False
 
 nivel = 1  # nível do jogador
 xp = 0  # experiência atual

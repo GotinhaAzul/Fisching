@@ -77,6 +77,7 @@ def estado_para_dict():
         "mostrar_secreto": estado.mostrar_secreto,
         "pools_desbloqueadas": list(estado.pools_desbloqueadas),
         "historias_pool_tocadas": list(estado.historias_pool_tocadas),
+        "introducao_mostrada": estado.introducao_mostrada,
     }
 
 
@@ -137,6 +138,7 @@ def aplicar_estado(dados):
     estado.punicao_pescada = dados.get("punicao_pescada", False)
     estado.questline_ancioes_desbloqueada = dados.get("questline_ancioes_desbloqueada", False)
     estado.punicao_pity = dados.get("punicao_pity", 0)
+    estado.introducao_mostrada = dados.get("introducao_mostrada", True)
 
 
 def _resolver_caminho(caminho):
