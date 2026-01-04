@@ -8,7 +8,7 @@ from buffs import normalizar_buffs_salvos
 
 
 ARQUIVO_SAVE = "savegame.json"
-VERSAO_SAVE = 1
+VERSAO_SAVE = 3
 
 
 def _pasta_save_padrao():
