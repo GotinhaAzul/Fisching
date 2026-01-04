@@ -507,6 +507,7 @@ def pescar():
             "kg": kg,
             "valor": valor,
             "vendavel": peixe != PUNICAO_NOME,
+            "pool": pool.get("nome"),
         }
 
         if peixe not in PEIXES_DESMATERIALIZAM:
