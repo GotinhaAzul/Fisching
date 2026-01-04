@@ -6,6 +6,9 @@ FACCAO = {
         "após você costurar alianças com piratas e santuários. Eles contam histórias "
         "entre moedas contadas e pragas antigas que ainda os assombram."
     ),
+    "requisitos_desbloqueio": {
+        "faccoes_concluidas": ["piratas_do_pouso", "santuarios"],
+    },
     "missoes": [
         {
             "id": "moedas_de_ouro",
