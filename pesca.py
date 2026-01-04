@@ -668,8 +668,9 @@ def calcular_expectativas(pool, evento, vara, buffs=None):
         bonus_raridade,
         vara.get("bonus_raridade", 0.0) + buffs.get("bonus_raridade_vara", 0.0),
     )
-    pesos_totais = sum(max(item[1], 0) for item in raridades_ajustadas)
-    raridades_bloqueadas = []
+
+    raridades_validas = []
+    raridades_bloqueadas = set()
 
     bonus_peso = evento.get("bonus_peso", 1.0) * buffs.get("bonus_peso", 1.0)
     bonus_valor = evento.get("bonus_valor", 1.0) * buffs.get("bonus_valor", 1.0)
@@ -690,15 +691,23 @@ def calcular_expectativas(pool, evento, vara, buffs=None):
     xp_esperado = 0.0
 
     for raridade, peso in raridades_ajustadas:
-        if peso <= 0 or pesos_totais <= 0:
+        if peso <= 0:
             continue
         intervalo = RARIDADE_INTERVALO_PESO.get(raridade)
         if not intervalo:
             continue
         peso_min, peso_max = intervalo
         if vara["peso_max"] < peso_min:
-            raridades_bloqueadas.append(raridade)
+            raridades_bloqueadas.add(raridade)
             continue
+
+        raridades_validas.append((raridade, peso, peso_min, peso_max))
+
+    pesos_totais = sum(peso for _, peso, _, _ in raridades_validas)
+
+    for raridade, peso, peso_min, peso_max in raridades_validas:
+        if pesos_totais <= 0:
+            break
 
         peso_medio = ((peso_min + peso_max) / 2) * bonus_peso
         peso_medio = min(peso_medio, vara["peso_max"])
@@ -715,7 +724,6 @@ def calcular_expectativas(pool, evento, vara, buffs=None):
 
         valor_esperado += prob * valor
         xp_esperado += prob * xp
-
     chance_secreto = CHANCE_PEIXE_SECRETO
     valor_esperado *= (1 - chance_secreto)
     xp_esperado *= (1 - chance_secreto)
@@ -735,4 +743,4 @@ def calcular_expectativas(pool, evento, vara, buffs=None):
         valor_esperado += chance_secreto * valor_secreto
         xp_esperado += chance_secreto * xp_secreto
 
-    return valor_esperado, xp_esperado, raridades_bloqueadas
+    return valor_esperado, xp_esperado, sorted(raridades_bloqueadas)
