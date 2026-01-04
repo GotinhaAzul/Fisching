@@ -5,6 +5,6 @@ DADOS_VARA = {
     "bonus_mutacao": -0.18,
     "bonus_reacao": 0.12,
     "preco": 2400,
-    "missoes_minimas": 12,
+    "missoes_minimas": 0,
     "descricao": "Suporta APEX pesadões, sacrificando raridade e mutação.",
 }
