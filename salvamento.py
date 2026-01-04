@@ -59,7 +59,10 @@ def estado_para_dict():
         "desbloqueou_santuario_sagrado": estado.desbloqueou_santuario_sagrado,
         "profecia_desbloqueada": estado.profecia_desbloqueada,
         "projeto_maelstrom_desbloqueado": estado.projeto_maelstrom_desbloqueado,
+        "projeto_vara_punicao_desbloqueado": estado.projeto_vara_punicao_desbloqueado,
         "acesso_ao_vazio": estado.acesso_ao_vazio,
+        "cabo_dos_sonhos_obtido": estado.cabo_dos_sonhos_obtido,
+        "linha_dos_pesadelos_obtida": estado.linha_dos_pesadelos_obtida,
         "punicao_pescada": estado.punicao_pescada,
         "questline_ancioes_desbloqueada": estado.questline_ancioes_desbloqueada,
         "punicao_pity": estado.punicao_pity,
@@ -134,7 +137,10 @@ def aplicar_estado(dados):
     estado.historias_pool_tocadas = set(dados.get("historias_pool_tocadas", []))
     estado.profecia_desbloqueada = dados.get("profecia_desbloqueada", False)
     estado.projeto_maelstrom_desbloqueado = dados.get("projeto_maelstrom_desbloqueado", False)
+    estado.projeto_vara_punicao_desbloqueado = dados.get("projeto_vara_punicao_desbloqueado", False)
     estado.acesso_ao_vazio = dados.get("acesso_ao_vazio", False)
+    estado.cabo_dos_sonhos_obtido = dados.get("cabo_dos_sonhos_obtido", False)
+    estado.linha_dos_pesadelos_obtida = dados.get("linha_dos_pesadelos_obtida", False)
     estado.punicao_pescada = dados.get("punicao_pescada", False)
     estado.questline_ancioes_desbloqueada = dados.get("questline_ancioes_desbloqueada", False)
     estado.punicao_pity = dados.get("punicao_pity", 0)
