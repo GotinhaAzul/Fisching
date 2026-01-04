@@ -263,6 +263,14 @@ def _diario_faccao(faccao_id):
     return estado.diario_faccoes.setdefault(faccao_id, [])
 
 
+def _faccao_desbloqueada(faccao):
+    requisitos = faccao.get("requisitos_desbloqueio")
+    if not requisitos:
+        return True
+    faltas = _checar_requisitos_faccao(requisitos)
+    return not faltas
+
+
 def _descricao_buff_preview(buff):
     if not buff:
         return "Buff a definir"
@@ -555,7 +563,11 @@ def menu_missoes_faccoes():
             input("\nPressione ENTER para continuar.")
             break
 
-        faccoes_lista = list(FACCOES.values())
+        faccoes_lista = [f for f in FACCOES.values() if _faccao_desbloqueada(f)]
+        if not faccoes_lista:
+            print("Nenhuma facção disponível no momento. Avance em outras linhas para desbloquear.")
+            input("\nPressione ENTER para continuar.")
+            break
         print("D. Abrir diário das facções")
         for idx, faccao in enumerate(faccoes_lista, 1):
             progresso = _progresso_faccao(faccao["id"])

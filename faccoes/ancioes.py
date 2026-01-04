@@ -5,6 +5,9 @@ FACCAO = {
         "Guardam o cume escondido por névoas eternas. Só recebem quem já encarou a Punição "
         "e consegue subir levando lembranças das profundezas e dos sonhos partidos."
     ),
+    "requisitos_desbloqueio": {
+        "faccoes_concluidas": ["profecia"],
+    },
     "missoes": [
         {
             "id": "escalar_montanha",

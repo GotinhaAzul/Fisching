@@ -5,6 +5,9 @@ FACCAO = {
         "As páginas roubadas dos mercadores falam de um vazio absoluto. Só quem conhece"
         " cada criatura da ilha consegue ler o que resta sem enlouquecer."
     ),
+    "requisitos_desbloqueio": {
+        "faccoes_concluidas": ["mercadores"],
+    },
     "missoes": [
         {
             "id": "a_profecia",
