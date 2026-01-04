@@ -211,6 +211,15 @@ def carregar_jogo(caminho=None, quiet=False):
                 print(f"❌ Erro ao carregar save: {erro_principal}")
             return False
 
+    versao_salva = dados.get("versao")
+    if versao_salva != VERSAO_SAVE:
+        if not quiet:
+            print(
+                "❌ Save de versão incompatível. "
+                f"Esperado v{VERSAO_SAVE}, encontrado v{versao_salva}."
+            )
+        return False
+
     aplicar_estado(dados)
     if not quiet:
         print("✅ Jogo carregado com sucesso!")
