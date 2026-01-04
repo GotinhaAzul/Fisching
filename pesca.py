@@ -208,6 +208,9 @@ def minigame_reacao(vara, raridade):
     if raridade == "Apex":
         tempo = 1.0 + bonus_reacao
         combo = random.choices(TECLAS, k=5)
+    elif raridade == "Raro":
+        tempo = 1.2 + bonus_reacao
+        combo = random.choices(TECLAS, k=2)
     elif raridade == "Lendário":
         tempo = 1.2 + bonus_reacao
         combo = random.choices(TECLAS, k=3)
@@ -473,11 +476,11 @@ def pescar():
                 if vazio_pool:
                     _registrar_resultado_vazio(False)
                 continue
-            if mutacao:
-                mutacao = None
-                mult_mut = 1.0
-            else:
-                kg *= 0.75
+            print("\n💨 Você errou o movimento e o peixe escapou!")
+            input("\nPressione ENTER para continuar")
+            if vazio_pool:
+                _registrar_resultado_vazio(False)
+            continue
 
         # Maestria por nível: bônus cumulativo de peso (0.2% por nível, sem limite)
         bonus_mestria = estado.nivel * 0.002
