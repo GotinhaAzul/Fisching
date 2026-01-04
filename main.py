@@ -11,12 +11,31 @@ from salvamento import salvar_jogo, carregar_jogo
 from altar import altar_disponivel, invocar_altar
 
 
+INTRODUCAO = """Seu avo contava-lhe historias antes de ir dormir.
+
+A neblina impossibilita a sua visao, voce extende a sua mao, mas mal consegue ve-la. O chacoalhar de sua pequena canoa contra as ondas faz os ossos de suas pernas tremerem, quase quebrando como as madeiras de sua proa. Sua visao escurece, seu corpo desiste e voce deixa de pensar...
+
+Por que fez isso? Por que entrou no barco sem um destino?
+"""
+
+
 def iniciar_jogo():
     # Tenta carregar save automaticamente para reduzir fricção
     carregado = carregar_jogo(quiet=True)
     if carregado:
         print("💾 Save carregado automaticamente.")
         input("Pressione ENTER para continuar")
+    mostrar_introducao()
+
+
+def mostrar_introducao():
+    if estado.introducao_mostrada:
+        return
+
+    limpar_console()
+    print(INTRODUCAO)
+    input("Pressione ENTER para continuar")
+    estado.introducao_mostrada = True
 
 
 def menu():
