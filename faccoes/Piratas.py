@@ -77,7 +77,7 @@ FACCAO = {
                 "nivel_min": 6,
                 "missoes_rng_min": 8,
                 "pagar_dinheiro": 120,
-                "peixes_por_raridade": {"Incomum": 2, "Raro": 1},
+                "peixes_por_raridade": {"Incomum": 20, "Raro": 10},
             },
             "recompensa": {
                 "dinheiro": 500,
