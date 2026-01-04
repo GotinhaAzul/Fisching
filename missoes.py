@@ -557,6 +557,7 @@ def menu_missoes_faccoes():
         limpar_console()
         print("🏳️ Missões de Facções\n")
         print("Tarefas lineares que contam a história do mundo e concedem buffs passivos.\n")
+        print("-" * 50)
 
         if not FACCOES:
             print("Nenhuma facção cadastrada. Adicione arquivos em 'faccoes/'.")
@@ -568,7 +569,7 @@ def menu_missoes_faccoes():
             print("Nenhuma facção disponível no momento. Avance em outras linhas para desbloquear.")
             input("\nPressione ENTER para continuar.")
             break
-        print("D. Abrir diário das facções")
+        print("D. 📓 Abrir diário das facções\n")
         for idx, faccao in enumerate(faccoes_lista, 1):
             progresso = _progresso_faccao(faccao["id"])
             total_capitulos = len(faccao.get("missoes", []))
@@ -577,7 +578,9 @@ def menu_missoes_faccoes():
             print(f"   {faccao.get('descricao', 'Missões em desenvolvimento.')}")
             buff_preview = faccao.get("buffs_passivos", [])
             if buff_preview:
-                print(f"   Buff previsto: {_descricao_buff_preview(buff_preview[capitulo_atual % len(buff_preview)])}")
+                proximo_buff = buff_preview[capitulo_atual % len(buff_preview)]
+                print(f"   Buff previsto: {_descricao_buff_preview(proximo_buff)}")
+            print("   " + "-" * 44)
             print()
 
         print("0. Voltar")
@@ -617,6 +620,7 @@ def _proxima_missao(missoes_planejadas, capitulo_atual):
 
 
 def _mostrar_resumo_missao(missao):
+    print("📘 Próximo capítulo")
     print(f"📌 {missao.get('titulo')}")
     print(missao.get("descricao", ""))
     print("\nRequisitos:")
@@ -627,10 +631,9 @@ def _mostrar_resumo_missao(missao):
     for linha in _resumo_recompensa(missao.get("recompensa")):
         print(f"- {linha}")
 
-    lore = missao.get("lore")
-    if lore:
-        print("\nLore revelado ao concluir:")
-        print(f"- {lore}")
+    if missao.get("lore"):
+        print("\nLore:")
+        print("- 🕵️ Revelada somente ao concluir. Confira o diário após completar a missão.")
 
 
 def _tentar_concluir_missao_faccao(faccao, missao):
@@ -661,6 +664,7 @@ def mostrar_faccao(faccao):
 
         print(f"🏳️ {faccao['nome']}\n")
         print(f"{faccao.get('descricao', '')}\n")
+        print("-" * 50 + "\n")
 
         _imprimir_linha_do_tempo(missoes_planejadas, capitulo_atual)
 
@@ -672,6 +676,7 @@ def mostrar_faccao(faccao):
             print("2. Abrir diário desta facção")
         else:
             print("🎉 Todas as missões desta facção foram concluídas!")
+            print("\nOpções:")
             print("1. Abrir diário desta facção")
 
         print("0. Voltar")
