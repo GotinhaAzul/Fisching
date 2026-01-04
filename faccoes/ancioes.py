@@ -16,7 +16,7 @@ FACCAO = {
             "requisitos": {
                 "flags": ["questline_ancioes_desbloqueada"],
                 "nivel_min": 70,
-                "pagar_dinheiro": 2500,
+                "pagar_dinheiro": 8000,
                 "peixes": {
                     "Pesadelos estilhaçados": 10,
                     "Serpente das Profundezas": 1,
