@@ -645,11 +645,6 @@ def exibir_contexto(pool, evento, buffs=None):
     print()
 
 
-def ha_outros_locais_disponiveis(pool_atual_nome):
-    desbloqueados = pools_desbloqueados()
-    return any(pool_info["nome"] != pool_atual_nome for pool_info in desbloqueados)
-
-
 def gerar_dica_alternativas(pool, evento, raridades_bloqueadas=None):
     raridades_bloqueadas = raridades_bloqueadas or []
     evento_padrao = evento is EVENTO_PADRAO
@@ -682,7 +677,13 @@ def calcular_expectativas(pool, evento, vara, buffs=None):
 
     bonus_peso = evento.get("bonus_peso", 1.0) * buffs.get("bonus_peso", 1.0)
     bonus_valor = evento.get("bonus_valor", 1.0) * buffs.get("bonus_valor", 1.0)
-    xp_mult = evento.get("xp_multiplicador", 1.0) * buffs.get("xp_multiplicador", 1.0)
+    bonus_mestria = 1 + estado.nivel * 0.002
+    xp_mult = (
+        evento.get("xp_multiplicador", 1.0)
+        * buffs.get("xp_multiplicador", 1.0)
+        * (1 + vara.get("bonus_xp", 0.0))
+        * pool.get("xp_mult", 1.0)
+    )
     chance_mutacao_base = (
         0.15
         + vara["bonus_mutacao"]
@@ -717,7 +718,7 @@ def calcular_expectativas(pool, evento, vara, buffs=None):
         if pesos_totais <= 0:
             break
 
-        peso_medio = ((peso_min + peso_max) / 2) * bonus_peso
+        peso_medio = ((peso_min + peso_max) / 2) * bonus_peso * bonus_mestria
         peso_medio = min(peso_medio, vara["peso_max"])
         prob = peso / pesos_totais
 
@@ -738,7 +739,7 @@ def calcular_expectativas(pool, evento, vara, buffs=None):
 
     intervalo_secreto = RARIDADE_INTERVALO_PESO.get("Secreto")
     if intervalo_secreto and vara["peso_max"] >= intervalo_secreto[0]:
-        peso_medio = ((intervalo_secreto[0] + intervalo_secreto[1]) / 2) * bonus_peso
+        peso_medio = ((intervalo_secreto[0] + intervalo_secreto[1]) / 2) * bonus_peso * bonus_mestria
         peso_medio = min(peso_medio, vara["peso_max"])
         valor_secreto = (
             (peso_medio * 0.1)
