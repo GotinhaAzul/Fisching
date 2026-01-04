@@ -21,9 +21,12 @@ FACCAO = {
                 "nivel_min": 70,
                 "pagar_dinheiro": 8000,
                 "peixes": {
-                    "Pesadelos estilhaçados": 10,
                     "Serpente das Profundezas": 1,
                 },
+                "peixes_por_raridade": {
+                    "Apex": 5,
+                },
+                "pools_desbloqueadas": ["O Vazio"],
             },
             "recompensa": {
                 "itens": [

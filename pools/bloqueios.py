@@ -2,6 +2,7 @@ import estado
 from pools import POOLS
 
 POCO_DE_DESEJOS_NOME = "Poço de desejos"
+POOL_VAZIO_NOME = "O Vazio"
 LENDARIOS_PARA_POCO_DE_DESEJOS = 10
 
 
@@ -22,6 +23,9 @@ def requisitos_poco_de_desejos():
 def pool_desbloqueada(pool):
     if pool["nome"] == POCO_DE_DESEJOS_NOME:
         return estado.desbloqueou_poco_de_desejos
+
+    if pool["nome"] == POOL_VAZIO_NOME and estado.punicao_pescada:
+        return False
 
     requer_flag = pool.get("requer_flag")
     if requer_flag and not getattr(estado, requer_flag, False):
