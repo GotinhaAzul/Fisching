@@ -311,6 +311,8 @@ def escolher_pool():
 
         # Monta lista de pools disponíveis e bloqueadas, mantendo as desbloqueadas no topo
         for pool in pools_ordenadas:
+            if pool["nome"] == POOL_VAZIO_NOME and estado.punicao_pescada:
+                continue
             if pool_desbloqueada(pool):
                 pools_desbloqueadas.append(pool)
             else:
