@@ -211,14 +211,38 @@ def selecionar_peixes_manualmente(ingredientes_necessarios):
             qtd > 0 for qtd in requisitos_mutacoes.values()
         )
 
+    def peixe_atende_requisito(peixe):
+        mutacao = peixe.get("mutacao")
+        raridade = peixe["raridade"]
+        if mutacao and requisitos_mutacoes.get(mutacao, 0) > 0:
+            return True
+        if requisitos_raridades.get(raridade, 0) > 0:
+            return True
+        return False
+
     while requisitos_pendentes():
         limpar_console()
         print("👩‍🍳 Selecione os peixes necessários")
         print(f"Restante: {restante_texto()}\n")
         print("Inventário:")
-        for i, peixe in enumerate(estado.inventario, 1):
-            marcado = "*" if i in selecionados_idx else " "
-            print(f"{marcado} {i}. {peixe['nome']} - {peixe['raridade']} - ${peixe['valor']:.2f}")
+
+        opcoes = []
+        for inv_idx, peixe in enumerate(estado.inventario):
+            if not peixe_atende_requisito(peixe):
+                continue
+            opcoes.append((len(opcoes) + 1, inv_idx, peixe))
+
+        if not opcoes:
+            print("Nenhum peixe disponível atende os requisitos restantes.")
+            input("Pressione ENTER para voltar.")
+            return []
+
+        for numero, inv_idx, peixe in opcoes:
+            marcado = "*" if inv_idx in selecionados_idx else " "
+            mutacao_txt = f"Mutação {peixe['mutacao']}" if peixe.get("mutacao") else "Sem mutação"
+            print(
+                f"{marcado} {numero}. {peixe['nome']} - {peixe['raridade']} - {mutacao_txt} - ${peixe['valor']:.2f}"
+            )
         print("0. Cancelar")
 
         escolha = input("> ")
@@ -227,29 +251,30 @@ def selecionar_peixes_manualmente(ingredientes_necessarios):
         escolha = int(escolha)
         if escolha == 0:
             return []
-        if not (1 <= escolha <= len(estado.inventario)):
+        if not (1 <= escolha <= len(opcoes)):
             continue
-        if escolha in selecionados_idx:
+
+        _, inv_idx, peixe = opcoes[escolha - 1]
+        if inv_idx in selecionados_idx:
             print("Peixe já selecionado.")
             input("Pressione ENTER para continuar.")
             continue
 
-        peixe = estado.inventario[escolha - 1]
         raridade = peixe["raridade"]
         mutacao = peixe.get("mutacao")
 
         if mutacao and requisitos_mutacoes.get(mutacao, 0) > 0:
             requisitos_mutacoes[mutacao] -= 1
-            selecionados_idx.add(escolha)
+            selecionados_idx.add(inv_idx)
         elif requisitos_raridades.get(raridade, 0) > 0:
             requisitos_raridades[raridade] -= 1
-            selecionados_idx.add(escolha)
+            selecionados_idx.add(inv_idx)
         else:
             print("Esse peixe não atende nenhum requisito pendente.")
             input("Pressione ENTER para continuar.")
             continue
 
-    return [estado.inventario[i - 1] for i in sorted(selecionados_idx)]
+    return [estado.inventario[i] for i in sorted(selecionados_idx)]
 
 
 def ingredientes_para_texto(ingredientes):
