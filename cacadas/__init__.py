@@ -42,13 +42,23 @@ CHANCE_APEX_INCREMENTO = 0.05
 CHANCE_APEX_TETO = 0.50
 
 
+def _peixes_sacrificiais():
+    peixes = set()
+    for cacada in CACADAS:
+        peixes.update(cacada["sacrificios"]["peixes"].keys())
+    return peixes
+
+
+PEIXES_SACRIFICIAIS = _peixes_sacrificiais()
+
+
 def _contar_recursos():
     peixes = {}
     mutacoes = {}
     for item in estado.inventario:
         nome = item.get("nome")
         mut = item.get("mutacao")
-        if nome:
+        if nome in PEIXES_SACRIFICIAIS:
             peixes[nome] = peixes.get(nome, 0) + 1
         if mut:
             mutacoes[mut] = mutacoes.get(mut, 0) + 1
