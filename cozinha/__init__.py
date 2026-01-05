@@ -4,7 +4,7 @@ import os
 
 import estado
 from buffs import ativar_buff, efeitos_para_texto
-from utils import limpar_console, mostrar_lista_paginada
+from utils import formatar_mutacao, limpar_console, mostrar_lista_paginada
 
 # Estrutura de receitas:
 # - ingredientes: dict com chaves opcionais "raridades" e "mutacoes", cada uma mapeando item -> quantidade
@@ -239,7 +239,7 @@ def selecionar_peixes_manualmente(ingredientes_necessarios):
 
         for numero, inv_idx, peixe in opcoes:
             marcado = "*" if inv_idx in selecionados_idx else " "
-            mutacao_txt = f"Mutação {peixe['mutacao']}" if peixe.get("mutacao") else "Sem mutação"
+            mutacao_txt = f"Mutação {formatar_mutacao(peixe['mutacao'])}" if peixe.get("mutacao") else "Sem mutação"
             print(
                 f"{marcado} {numero}. {peixe['nome']} - {peixe['raridade']} - {mutacao_txt} - ${peixe['valor']:.2f}"
             )

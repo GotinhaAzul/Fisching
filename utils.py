@@ -1,8 +1,34 @@
 import os
 
+from dados import MUTACOES_COMUNS, MUTACOES_LENDARIAS, MUTACOES_RARAS
+
 
 def limpar_console():
     os.system("cls" if os.name == "nt" else "clear")
+
+
+def formatar_mutacao(mutacao):
+    if not mutacao:
+        return ""
+
+    cores = {
+        "comum": "\033[92m",  # Verde
+        "rara": "\033[94m",  # Azul
+        "lendaria": "\033[93m",  # Amarelo
+    }
+
+    reset = "\033[0m"
+
+    if mutacao in MUTACOES_COMUNS:
+        cor = cores["comum"]
+    elif mutacao in MUTACOES_RARAS:
+        cor = cores["rara"]
+    elif mutacao in MUTACOES_LENDARIAS:
+        cor = cores["lendaria"]
+    else:
+        return mutacao
+
+    return f"{cor}{mutacao}{reset}"
 
 
 def mostrar_lista_paginada(linhas, titulo=None, itens_por_pagina=12, prompt="> ", pagina_inicial=0):

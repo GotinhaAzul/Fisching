@@ -1,7 +1,12 @@
 import estado
 from buffs import ativar_buff, efeitos_para_texto, resumo_buffs_ativos
 from varas import VARAS
-from utils import formatar_contagem_por_raridade, limpar_console, mostrar_lista_paginada
+from utils import (
+    formatar_contagem_por_raridade,
+    formatar_mutacao,
+    limpar_console,
+    mostrar_lista_paginada,
+)
 from falas import aleatoria, FALAS_MERCADO
 
 RARIDADES_ORDEM = {
@@ -310,7 +315,8 @@ def formatar_item_sem_indice(item):
     tipo = item.get("tipo", "peixe")
     if tipo == "prato":
         return f"{item['nome']} [Prato] - ${item['valor']:.2f}"
-    mut = f" ({item['mutacao']})" if item.get("mutacao") else ""
+    mut_raw = item.get("mutacao")
+    mut = f" ({formatar_mutacao(mut_raw)})" if mut_raw else ""
     kg = item.get("kg", 0)
     valor_txt = f" - ${item['valor']:.2f}" if "valor" in item else ""
     pool_txt = f" | Pool: {item.get('pool')}" if item.get("pool") else ""

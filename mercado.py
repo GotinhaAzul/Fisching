@@ -1,5 +1,7 @@
 import estado
 
+from utils import formatar_mutacao
+
 
 def vender_peixe_individual():
     inventario = estado.inventario
@@ -8,7 +10,7 @@ def vender_peixe_individual():
         return
 
     for i, peixe in enumerate(inventario):
-        mutacao = peixe.get("mutacao")
+        mutacao = formatar_mutacao(peixe.get("mutacao"))
         mutacao_txt = f" {mutacao}" if mutacao else ""
         print(
             f"{i+1}. {peixe.get('nome', '?')}{mutacao_txt} ({peixe.get('raridade', '?')}) - ${peixe.get('valor', 0):.2f}"
