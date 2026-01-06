@@ -14,6 +14,8 @@ from colorama import Fore, Style
 
 colorama.init()
 
+from dados import MUTACOES_COMUNS, MUTACOES_LENDARIAS, MUTACOES_RARAS
+
 
 def limpar_console():
     os.system("cls" if os.name == "nt" else "clear")
