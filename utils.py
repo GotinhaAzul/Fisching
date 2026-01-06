@@ -1,24 +1,62 @@
-import importlib.util
 import os
-import subprocess
-import sys
 
-from dados import MUTACOES_COMUNS, MUTACOES_LENDARIAS, MUTACOES_RARAS
+from dados import MUTACOES, MUTACOES_COMUNS, MUTACOES_LENDARIAS, MUTACOES_RARAS
 
-if importlib.util.find_spec("colorama") is None:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "colorama"])
+try:
+    from colorama import Fore, Style, init as colorama_init
+except ImportError:
+    # Ambiente sem colorama instalado (ex.: execução offline). Usa códigos ANSI básicos.
+    class _AnsiFore:
+        BLACK = "\033[30m"
+        RED = "\033[31m"
+        GREEN = "\033[32m"
+        YELLOW = "\033[33m"
+        BLUE = "\033[34m"
+        MAGENTA = "\033[35m"
+        CYAN = "\033[36m"
+        WHITE = "\033[37m"
 
-import colorama
-from colorama import Fore, Style
+    class _AnsiStyle:
+        RESET_ALL = "\033[0m"
 
+    Fore = _AnsiFore()
+    Style = _AnsiStyle()
 
-colorama.init()
+    def colorama_init(*args, **kwargs):
+        return None
+else:
+    colorama_init(autoreset=False)
 
-from dados import MUTACOES_COMUNS, MUTACOES_LENDARIAS, MUTACOES_RARAS
+from varas import VARAS
+import eventos
 
 
 def limpar_console():
     os.system("cls" if os.name == "nt" else "clear")
+
+
+def _cor_por_multiplicador(multiplicador):
+    if multiplicador >= 1.65:
+        return Fore.YELLOW
+    if multiplicador >= 1.35:
+        return Fore.BLUE
+    return Fore.GREEN
+
+
+def _catalogar_mutacoes():
+    mutacoes = {}
+    mutacoes.update(MUTACOES)
+
+    for evento in eventos.EVENTOS:
+        mutacoes.update(evento.get("mutacoes_exclusivas", {}))
+
+    for vara in VARAS.values():
+        mutacoes.update(vara.get("mutacoes_exclusivas", {}))
+
+    return mutacoes
+
+
+MUTACOES_CATALOGADAS = _catalogar_mutacoes()
 
 
 def formatar_mutacao(mutacao):
@@ -32,7 +70,10 @@ def formatar_mutacao(mutacao):
     elif mutacao in MUTACOES_LENDARIAS:
         cor = Fore.YELLOW
     else:
-        return mutacao
+        multiplicador = MUTACOES_CATALOGADAS.get(mutacao)
+        if multiplicador is None:
+            return mutacao
+        cor = _cor_por_multiplicador(multiplicador)
 
     return f"{cor}{mutacao}{Style.RESET_ALL}"
 
