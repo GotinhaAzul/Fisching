@@ -1,20 +1,43 @@
+import importlib
 import importlib.util
 import os
 import subprocess
 import sys
+from types import SimpleNamespace
 
 from dados import MUTACOES_COMUNS, MUTACOES_LENDARIAS, MUTACOES_RARAS
 
-if importlib.util.find_spec("colorama") is None:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "colorama"])
 
-import colorama
-from colorama import Fore, Style
+def _inicializar_colorama():
+    spec = importlib.util.find_spec("colorama")
+
+    if spec is None:
+        try:
+            subprocess.check_call(
+                [sys.executable, "-m", "pip", "install", "colorama"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            spec = importlib.util.find_spec("colorama")
+        except Exception:
+            return None, None
+
+    if spec is None or spec.loader is None:
+        return None, None
+
+    colorama = importlib.import_module("colorama")
+    colorama.init()
+
+    from colorama import Fore, Style
+
+    return Fore, Style
 
 
-colorama.init()
+Fore, Style = _inicializar_colorama()
 
-from dados import MUTACOES_COMUNS, MUTACOES_LENDARIAS, MUTACOES_RARAS
+if Fore is None or Style is None:
+    Fore = SimpleNamespace(GREEN="", BLUE="", YELLOW="")
+    Style = SimpleNamespace(RESET_ALL="")
 
 
 def limpar_console():
