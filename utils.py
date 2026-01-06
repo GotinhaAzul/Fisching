@@ -1,8 +1,38 @@
+import importlib.util
 import os
+import subprocess
+import sys
+
+from dados import MUTACOES_COMUNS, MUTACOES_LENDARIAS, MUTACOES_RARAS
+
+if importlib.util.find_spec("colorama") is None:
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "colorama"])
+
+import colorama
+from colorama import Fore, Style
+
+
+colorama.init()
 
 
 def limpar_console():
     os.system("cls" if os.name == "nt" else "clear")
+
+
+def formatar_mutacao(mutacao):
+    if not mutacao:
+        return ""
+
+    if mutacao in MUTACOES_COMUNS:
+        cor = Fore.GREEN
+    elif mutacao in MUTACOES_RARAS:
+        cor = Fore.BLUE
+    elif mutacao in MUTACOES_LENDARIAS:
+        cor = Fore.YELLOW
+    else:
+        return mutacao
+
+    return f"{cor}{mutacao}{Style.RESET_ALL}"
 
 
 def mostrar_lista_paginada(linhas, titulo=None, itens_por_pagina=12, prompt="> ", pagina_inicial=0):
