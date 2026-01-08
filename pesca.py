@@ -14,7 +14,7 @@ from pools.bloqueios import (
     tentar_desbloquear_poco_de_desejos,
 )
 from varas import VARAS
-from utils import limpar_console
+from utils import formatar_mutacao, limpar_console
 from falas import (
     aleatoria,
     aleatoria_formatada,
@@ -560,7 +560,7 @@ def pescar():
 
         mensagem_poco = tentar_desbloquear_poco_de_desejos()
 
-        mut_txt = f" ({mutacao})" if mutacao else ""
+        mut_txt = f" ({formatar_mutacao(mutacao)})" if mutacao else ""
         raridade_txt = "" if peixe in PEIXES_SEM_RARIDADE_VISUAL else f" [{raridade}]"
         print(f"\n🎣 Você pescou: {peixe}{mut_txt}{raridade_txt} - {kg:.2f}kg")
         print(f"💰 Valor: ${valor:.2f}")
