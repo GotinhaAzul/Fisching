@@ -1,8 +1,8 @@
 NOME_VARA = "Maelstrom"
 DADOS_VARA = {
     "peso_max": 72,
-    "bonus_raridade": 0.28,
-    "bonus_mutacao": 0.08,
+    "bonus_raridade": 0.3,
+    "bonus_mutacao": 0.1,
     "bonus_reacao": -0.25,
     "preco": 0,
     "descricao": (
