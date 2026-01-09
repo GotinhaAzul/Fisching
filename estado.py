@@ -76,3 +76,10 @@ def ganhar_xp(quantidade: int):
         xp -= xp_por_nivel
         nivel += 1
         xp_por_nivel = calcular_xp_por_nivel(nivel)
+
+
+def xp_total_acumulado():
+    total = xp
+    for nivel_atual in range(1, nivel):
+        total += calcular_xp_por_nivel(nivel_atual)
+    return total

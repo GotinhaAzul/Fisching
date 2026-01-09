@@ -362,7 +362,7 @@ def _checar_requisitos_faccao(requisitos):
         faltas.append(f"Nível mínimo {nivel_min}.")
 
     xp_min = requisitos.get("xp_min")
-    if xp_min and estado.xp < xp_min:
+    if xp_min and estado.xp_total_acumulado() < xp_min:
         faltas.append(f"XP mínimo {xp_min}.")
 
     missoes_rng_min = requisitos.get("missoes_rng_min")
