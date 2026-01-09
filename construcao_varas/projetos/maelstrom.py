@@ -6,7 +6,7 @@ PROJETOS = [
         "flag_requerida": "projeto_maelstrom_desbloqueado",
         "requisitos": {
             "nivel_minimo": 18,
-            "missoes_minimas": 10,
+            "missoes_minimas": 14,
             "pescados_raridade": {"Lendário": 12, "Apex": 2},
             "sacrificios": {
                 "raridades": {"Apex": 1, "Lendário": 3},
