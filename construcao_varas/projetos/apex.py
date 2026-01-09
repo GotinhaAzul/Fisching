@@ -5,8 +5,8 @@ PROJETOS = [
         "descricao": "Leve como o bambu original, agora temperada pela Fênix Marinha para suportar APEX.",
         "requisitos": {
             "nivel_minimo": 45,
-            "missoes_minimas": 18,
-            "pescados_raridade": {"Apex": 3, "Lendário": 8},
+            "missoes_minimas": 10,
+            "pescados_raridade": {"Apex": 2, "Lendário": 8},
             "sacrificios": {
                 "raridades": {"Apex": 1},
                 "mutacoes": {"Temporal": 1},
@@ -25,8 +25,8 @@ PROJETOS = [
         "descricao": "Uma versão forjada com escamas do Leviatã para segurar qualquer monstruosidade.",
         "requisitos": {
             "nivel_minimo": 70,
-            "missoes_minimas": 55,
-            "pescados_raridade": {"Apex": 6, "Lendário": 15},
+            "missoes_minimas": 12,
+            "pescados_raridade": {"Apex": 3, "Lendário": 15},
             "sacrificios": {
                 "raridades": {"Apex": 2},
                 "mutacoes": {"Abissal": 2, "Vazio": 1},
@@ -45,8 +45,8 @@ PROJETOS = [
         "descricao": "Sorte corrompida pelos venenos do pântano para atrair raridades APEX.",
         "requisitos": {
             "nivel_minimo": 58,
-            "missoes_minimas": 40,
-            "pescados_raridade": {"Apex": 4, "Raro": 20},
+            "missoes_minimas": 14,
+            "pescados_raridade": {"Apex": 3, "Raro": 20},
             "sacrificios": {
                 "raridades": {"Lendário": 2},
                 "mutacoes": {"Estrelado": 1, "Venenoso": 1},
@@ -65,7 +65,7 @@ PROJETOS = [
         "descricao": "Projetada para mutações constantes nas caçadas geladas da aurora.",
         "requisitos": {
             "nivel_minimo": 52,
-            "missoes_minimas": 34,
+            "missoes_minimas": 16,
             "pescados_raridade": {"Apex": 3, "Raro": 15},
             "sacrificios": {
                 "raridades": {"Lendário": 1},
