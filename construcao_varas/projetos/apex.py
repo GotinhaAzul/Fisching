@@ -5,7 +5,7 @@ PROJETOS = [
         "descricao": "Leve como o bambu original, agora temperada pela Fênix Marinha para suportar APEX.",
         "requisitos": {
             "nivel_minimo": 45,
-            "missoes_minimas": 10,
+            "missoes_minimas": 15,
             "pescados_raridade": {"Apex": 2, "Lendário": 8},
             "sacrificios": {
                 "raridades": {"Apex": 1},
@@ -24,8 +24,8 @@ PROJETOS = [
         "vara": "Pesada Abissal",
         "descricao": "Uma versão forjada com escamas do Leviatã para segurar qualquer monstruosidade.",
         "requisitos": {
-            "nivel_minimo": 70,
-            "missoes_minimas": 12,
+            "nivel_minimo": 55,
+            "missoes_minimas": 15,
             "pescados_raridade": {"Apex": 3, "Lendário": 15},
             "sacrificios": {
                 "raridades": {"Apex": 2},
@@ -44,8 +44,8 @@ PROJETOS = [
         "vara": "Fortuna Putrefata",
         "descricao": "Sorte corrompida pelos venenos do pântano para atrair raridades APEX.",
         "requisitos": {
-            "nivel_minimo": 58,
-            "missoes_minimas": 14,
+            "nivel_minimo": 53,
+            "missoes_minimas": 15,
             "pescados_raridade": {"Apex": 3, "Raro": 20},
             "sacrificios": {
                 "raridades": {"Lendário": 2},
@@ -65,7 +65,7 @@ PROJETOS = [
         "descricao": "Projetada para mutações constantes nas caçadas geladas da aurora.",
         "requisitos": {
             "nivel_minimo": 52,
-            "missoes_minimas": 16,
+            "missoes_minimas": 15,
             "pescados_raridade": {"Apex": 3, "Raro": 15},
             "sacrificios": {
                 "raridades": {"Lendário": 1},
